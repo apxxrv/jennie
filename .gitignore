@@ -48,3 +48,7 @@ demo/raw/
 demo/launch-video/vo-samples/
 demo/launch-video/build/
 demo/launch-video/vo/
+
+# AWS deploy: generated secrets (site password, filled-in gate function, bundle)
+deploy/aws/.site-password
+deploy/aws/.generated/
