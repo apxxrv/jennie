@@ -19,7 +19,7 @@ async def lifespan(_app: FastAPI):
     run.mark_stale_runs()
     await attacks.start()
     warm = None
-    if not settings.mock_apify:  # the demo vendor's independent lookup, so the first demo call does not wait for the Actor
+    if not settings.mock_apify:  # the demo vendor's independent lookup (Actor or local crawler), so the first demo call does not wait
         warm = asyncio.create_task(contacts.warm())
     yield
     if warm is not None:

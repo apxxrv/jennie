@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Literal, Optional, Protocol
 from urllib.parse import urlparse
 
+import httpx
 from pydantic import BaseModel
 
 from app.config import get_settings
@@ -186,6 +187,8 @@ def parse_actor_row(vendor: Vendor, row: dict, run_id: Optional[str]) -> LookupR
 
 
 class RealContactFinder:
+    label = "Apify"  # in the failure log line
+
     async def lookup(self, vendor: Vendor) -> LookupResult:
         s = get_settings()
         now = _now()
@@ -198,7 +201,7 @@ class RealContactFinder:
         except Exception as exc:  # noqa: BLE001  (timeout, network, Apify error, unexpected output: all the same to the caller)
             name = type(exc).__name__
             health.failed(name)
-            log.warning("Apify lookup failed for %s: %s", vendor.id, name)
+            log.warning("%s lookup failed for %s: %s", self.label, vendor.id, name)
             return LookupResult(status="unavailable", error=name, checked_at=now)
         health.ok()
         cache_put(vendor, result)  # a result is cached, a failure is not: the next call tries again
@@ -237,8 +240,31 @@ async def _abort(client, run_id: str) -> None:
         pass
 
 
+# ---------------------------------------------------------------- the local finder: the same crawler, inside this process
+
+
+class LocalContactFinder(RealContactFinder):
+    """CONTACTS_PROVIDER=local: runs the Actor's crawler (app/services/vendor_contact) here instead of on Apify. Same cache,
+    health, timeout and row checks as the Apify finder; only the run differs. No Apify token or account needed."""
+
+    label = "Local crawler"
+
+    def __init__(self, transport: Optional[httpx.AsyncBaseTransport] = None) -> None:
+        self._transport = transport  # tests only: an httpx mock transport
+
+    async def _run(self, vendor: Vendor) -> LookupResult:
+        from app.services.vendor_contact import verify_business
+
+        # Only our own record goes in: the vendor's name and website_url. Nothing from a request, an email or an invoice.
+        row = await verify_business(vendor.name, vendor.website_url or "", max_pages=6, request_timeout_secs=6, transport=self._transport)
+        return parse_actor_row(vendor, row, None)
+
+
 def get_finder() -> ContactFinder:
-    return MockContactFinder() if get_settings().mock_apify else RealContactFinder()
+    s = get_settings()
+    if s.mock_apify:
+        return MockContactFinder()
+    return LocalContactFinder() if s.contacts_provider == "local" else RealContactFinder()
 
 
 async def lookup(vendor: Vendor) -> LookupResult:

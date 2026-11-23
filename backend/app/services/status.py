@@ -48,7 +48,8 @@ def _apify_row(s) -> dict:
         return {"name": "Vendor phone lookup (Apify)", "mode": "degraded", "last_success_at": last_ok,
                 "detail": f"The last lookup failed ({contacts.health.last_error}). Calls use the on-file number and the hold says the independent check was unavailable."}
     return {"name": "Vendor phone lookup (Apify)", "mode": "real", "last_success_at": last_ok,
-            "detail": "Vendor Contact Verifier Actor reads the vendor's own website"}
+            "detail": "Built-in crawler (same code as the Actor) reads the vendor's own website" if s.contacts_provider == "local"
+            else "Vendor Contact Verifier Actor reads the vendor's own website"}
 
 
 @router.get("/system/status")
