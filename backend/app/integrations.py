@@ -34,7 +34,7 @@ def integration_status() -> dict:
         "twilio": bool(s.twilio_account_sid and s.twilio_auth_token and s.twilio_from_number),
         "cartesia": bool(s.cartesia_api_key and s.cartesia_voice_id),
         "nessie": bool(s.nessie_api_key),
-        "apify": bool(s.apify_token),
+        "apify": s.contacts_provider == "local" or bool(s.apify_token),  # the local crawler needs no token
         "crs": bool(identity._env("CRS_USERNAME") and identity._env("CRS_PASSWORD")),  # CRS login lives in the environment, not config.py
         "claude": bool(s.anthropic_api_key),
     }

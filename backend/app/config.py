@@ -1,5 +1,5 @@
 from functools import lru_cache
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -46,6 +46,7 @@ class Settings(BaseSettings):
     apify_token: str = ""
     # The published Vendor Contact Verifier Actor ("<username>/<actor-name>" or its id). See docs/apify.md.
     apify_actor_id: str = "earnest_grill/vendor-contact-verifier"
+    contacts_provider: Literal["apify", "local"] = "apify"  # local = run the same crawler inside the backend, no Apify account needed
     crs_api_key: str = ""
 
     database_url: str = "sqlite:///./countersign.db"
