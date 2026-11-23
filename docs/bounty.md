@@ -1,6 +1,6 @@
 # Rob Countersign bounty inbox
 
-Source: `backend/app/services/bounty.py`. Provider: Postmark inbound email.
+Source: `backend/app/services/bounty.py`. Provider: Postmark inbound email, or Amazon SES through SNS (see [SES inbound](#ses-inbound)).
 
 ## Setup
 
@@ -22,6 +22,20 @@ Source: `backend/app/services/bounty.py`. Provider: Postmark inbound email.
 An accepted email becomes a message in a **new thread** (the sender never joins a vendor's thread), an invoice, an `attacks` row (`source: bounty_email`, `moderation_status: pending`) and a mini-run through the same extraction, injection scan, risk assessment, verification call and payment steps as every other invoice. A vendor named in the email is only a hint and is stored as `vendor_claim: {verified: false}`. Money can only go to the vendor's verified account (Nessie sandbox), a changed account triggers a call to a number from `ALLOWED_CALL_NUMBERS`, and nothing in the email can change either.
 
 Response: `{attack_id, message_id, invoice_id, run_id, queued, ...}`.
+
+## SES inbound
+
+`POST /api/bounty/inbound/ses` is the same inbox fed by Amazon SES instead of Postmark. It takes the same secret, then turns the email into the same fields and runs every rule in the table above (limits, PDF only, sizes, duplicates). SNS retries a failed delivery; the SES `messageId` is the duplicate key.
+
+1. Verify the domain in SES and point its MX record at `inbound-smtp.<region>.amazonaws.com`.
+2. Create an SNS topic.
+3. Add an SES receipt rule for the bounty address with an SNS action to that topic (encoding UTF-8 or Base64; both work).
+4. Subscribe the HTTPS endpoint `https://anything:<BOUNTY_WEBHOOK_SECRET>@<backend host>/api/bounty/inbound/ses` to the topic. The route confirms the subscription itself, but only by fetching an `https://sns.<region>.amazonaws.com` URL.
+5. Set `SES_INBOUND_TOPIC_ARN` to the topic's ARN: messages from any other topic get 403.
+
+Limits:
+- The SES SNS action only delivers emails up to 150 KB in total, so an email with a large PDF bounces. Bigger mail would need an S3 action instead, which this route does not read.
+- SNS message signatures are not verified; the secret and the topic check are the only auth. Verify the signature before relying on this in production.
 
 ## Leaderboard and moderation
 

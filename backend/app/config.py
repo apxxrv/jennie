@@ -63,6 +63,7 @@ class Settings(BaseSettings):
     # header x-moderator-token, and answer 503 while this is blank.
     bounty_moderator_token: str = ""
     bounty_global_limit_per_hour: int = 60  # accepted bounty submissions per hour across all senders; 0 closes the inbox
+    ses_inbound_topic_arn: str = ""  # when set, SNS messages to /api/bounty/inbound/ses from any other topic are refused (403)
 
     # Where uploaded invoice PDFs are saved (generated filenames only).
     upload_dir: str = "./uploads"

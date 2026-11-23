@@ -2,6 +2,7 @@
 # Prize track: Armadin (Best Security Hack: the public bounty), Hyphenate (real attacks from real people)
 # Contract:
 #   POST /api/bounty/inbound          Postmark inbound-email webhook for the Rob Countersign bounty
+#   POST /api/bounty/inbound/ses      the same inbox fed by Amazon SES through an SNS HTTPS subscription (same secret, same rules)
 #   GET  /api/bounty/queue            the moderation queue (default: pending), oldest first, with the full attack text for the moderator
 #   POST /api/bounty/{attack_id}/moderate   {action: approve | hide, moderator}
 #
@@ -23,9 +24,15 @@
 
 import base64
 import binascii
+import email
+import email.policy
 import hmac
+import json
 import re
 from typing import Any, Literal, Optional
+from urllib.parse import urlsplit
+
+import httpx
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
@@ -139,23 +146,30 @@ def _pdfs(data: dict) -> list[bytes]:
 # ---------------------------------------------------------------- POST /api/bounty/inbound
 
 
-@router.post("/bounty/inbound")
-async def bounty_inbound(request: Request, session: Session = Depends(get_session)) -> dict:
-    require_secret(request)  # before anything is read
+async def _read_capped(request: Request) -> bytes:
     declared = request.headers.get("content-length")
     if declared and declared.isdigit() and int(declared) > MAX_REQUEST_BYTES:
         raise HTTPException(413, "request too large")
     raw = await request.body()
     if len(raw) > MAX_REQUEST_BYTES:
         raise HTTPException(413, "request too large")
-    try:
-        import json
+    return raw
 
+
+@router.post("/bounty/inbound")
+async def bounty_inbound(request: Request, session: Session = Depends(get_session)) -> dict:
+    require_secret(request)  # before anything is read
+    raw = await _read_capped(request)
+    try:
         data = json.loads(raw)
         assert isinstance(data, dict)
     except Exception:
         raise HTTPException(422, "expected a JSON object")
+    return await _accept(data, session)
 
+
+async def _accept(data: dict, session: Session) -> dict:
+    """Every rule after authentication and parsing, for a Postmark-shaped dict (From, Subject, TextBody/HtmlBody, MessageID, Attachments)."""
     sender = _sender(data)
     key = sender_key(sender)
     now = utcnow()
@@ -181,7 +195,7 @@ async def bounty_inbound(request: Request, session: Session = Depends(get_sessio
     pdfs = _pdfs(data)
 
     mid = re.sub(r"[^\w.@-]", "", str(data.get("MessageID") or ""))[:100]
-    if mid:  # Postmark delivers again after a failure: the same MessageID is not a second attack
+    if mid:  # Postmark and SNS deliver again after a failure: the same MessageID is not a second attack
         seen = session.exec(select(AuditLog).where(AuditLog.entity == "bounty_message", AuditLog.entity_id == mid)).first()
         if seen is not None:
             return {"duplicate": True, "attack_id": (seen.detail_json or {}).get("attack_id")}
@@ -198,6 +212,94 @@ async def bounty_inbound(request: Request, session: Session = Depends(get_sessio
     session.commit()
     session.refresh(attack), session.refresh(msg), session.refresh(inv)
     return await attacks._launch(attack, msg, inv, run_id)
+
+
+# ---------------------------------------------------------------- POST /api/bounty/inbound/ses
+
+SNS_HOST_RE = re.compile(r"^sns\.[a-z0-9-]+\.amazonaws\.com$")
+SNS_CONFIRM_TIMEOUT = 5.0
+
+
+def _sns_url_ok(url: str) -> bool:
+    """SSRF guard: only https to sns.<region>.amazonaws.com, no credentials, no other port."""
+    try:
+        u = urlsplit(url)
+        port = u.port
+    except ValueError:
+        return False
+    return u.scheme == "https" and bool(SNS_HOST_RE.match(u.hostname or "")) and port in (None, 443) and u.username is None and u.password is None
+
+
+def _mime_bytes(content: str) -> bytes:
+    """SES sends the raw email as text (UTF-8 encoding) or base64 (Base64 encoding). Base64 only if it decodes strictly to an email with headers."""
+    try:
+        raw = base64.b64decode("".join(content.split()), validate=True)
+    except (binascii.Error, ValueError):
+        raw = b""
+    if raw and email.message_from_bytes(raw, policy=email.policy.default).keys():
+        return raw
+    return content.encode("utf-8", errors="replace")
+
+
+def _ses_to_postmark(content: str, ses_id: str) -> dict:
+    """The raw MIME email as the dict _accept expects. Only From, Subject, the text, the Message-ID and the attachments are read."""
+    msg = email.message_from_bytes(_mime_bytes(content), policy=email.policy.default)
+    plain, html = msg.get_body(preferencelist=("plain",)), msg.get_body(preferencelist=("html",))
+    atts = []
+    for part in msg.walk():
+        if part.is_multipart() or not (part.get_filename() or part.get_content_disposition() == "attachment"):
+            continue
+        atts.append({"Name": str(part.get_filename() or ""), "ContentType": part.get_content_type(),
+                     "Content": base64.b64encode(part.get_payload(decode=True) or b"").decode()})
+    return {"From": str(msg.get("From") or ""), "Subject": str(msg.get("Subject") or ""),
+            "TextBody": plain.get_content() if plain is not None else "", "HtmlBody": html.get_content() if html is not None else "",
+            "MessageID": ses_id or str(msg.get("Message-ID") or ""), "Attachments": atts}
+
+
+@router.post("/bounty/inbound/ses")
+async def bounty_inbound_ses(request: Request, session: Session = Depends(get_session)) -> dict:
+    """Amazon SES receipt rule -> SNS topic -> this HTTPS subscription. SNS posts JSON as text/plain, so the body is parsed regardless of type."""
+    require_secret(request)  # before anything is read; SNS sends the URL's credentials as Basic auth
+    raw = await _read_capped(request)
+    try:
+        sns = json.loads(raw)
+        assert isinstance(sns, dict)
+    except Exception:
+        raise HTTPException(422, "expected an SNS JSON message")
+    kind = sns.get("Type")
+    if kind == "UnsubscribeConfirmation":
+        return {"ignored": True}
+    if kind not in ("SubscriptionConfirmation", "Notification"):
+        raise HTTPException(422, "unknown SNS message type")
+    topic = get_settings().ses_inbound_topic_arn
+    if topic and sns.get("TopicArn") != topic:
+        raise HTTPException(403, "SNS message from another topic")
+
+    if kind == "SubscriptionConfirmation":
+        url = sns.get("SubscribeURL")
+        if not isinstance(url, str) or not _sns_url_ok(url):
+            raise HTTPException(400, "SubscribeURL is not an https SNS URL")
+        try:
+            async with httpx.AsyncClient(timeout=SNS_CONFIRM_TIMEOUT, follow_redirects=False) as client:
+                r = await client.get(url)
+        except httpx.HTTPError:
+            raise HTTPException(502, "could not reach SNS to confirm the subscription")
+        if r.status_code != 200:
+            raise HTTPException(502, f"SNS answered {r.status_code} to the confirmation")
+        return {"confirmed": True}
+
+    try:
+        note = json.loads(sns.get("Message") or "")
+    except (ValueError, TypeError):
+        raise HTTPException(422, "Message is not JSON")
+    if not isinstance(note, dict) or note.get("notificationType") != "Received" or not isinstance(note.get("content"), str) or not note["content"]:
+        raise HTTPException(422, "expected an SES Received notification with the email content")
+    mail = note.get("mail") if isinstance(note.get("mail"), dict) else {}
+    try:  # the MIME is untrusted and the stdlib parser can raise many kinds of error on broken input: all of them are a 422
+        data = _ses_to_postmark(note["content"], str(mail.get("messageId") or ""))
+    except Exception:
+        raise HTTPException(422, "the email could not be parsed")
+    return await _accept(data, session)
 
 
 # ---------------------------------------------------------------- moderation
