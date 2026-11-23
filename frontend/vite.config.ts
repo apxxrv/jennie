@@ -10,7 +10,10 @@ export default defineConfig({
   },
   // One .env at the repo root for backend and frontend. Vite only exposes VITE_* keys to the browser.
   envDir: path.resolve(import.meta.dirname, ".."),
-  server: { port: 5173 },
+  server: {
+    port: 5173,
+    proxy: { "/api": { target: "http://127.0.0.1:8000", changeOrigin: true } },
+  },
   build: {
     rolldownOptions: {
       output: {
