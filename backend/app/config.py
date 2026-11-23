@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     tts_provider: Literal["cartesia", "polly"] = "cartesia"  # polly: the call voice through AWS Polly (AWS credentials, no Cartesia key)
     polly_voice_id: str = "Matthew"
     polly_engine: str = "neural"
+    polly_vendor_voice_id: str = "Stephen"  # the vendor's lines in the browser call view (Jenny voice route), a clearly different voice
     stt_api_key: str = ""
     elevenlabs_api_key: str = ""
     elevenlabs_voice_id: str = ""

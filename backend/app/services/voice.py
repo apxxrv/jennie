@@ -220,10 +220,8 @@ def _cartesia_wav(text: str, s: Settings) -> bytes:
 _polly_client_cache: dict = {}
 
 
-def _polly_wav(text: str, s: Settings) -> bytes:
-    """AWS Polly (TTS_PROVIDER=polly): raw 16 kHz 16-bit mono PCM, wrapped in a WAV header so Twilio can Play it."""
-    import io
-
+def polly_client(s: Settings) -> Any:
+    """One Polly client per (profile, region), from the usual AWS credential chain. Shared by the call voice and the browser voice."""
     key = (s.aws_profile, s.aws_region)
     client = _polly_client_cache.get(key)
     if client is None:
@@ -233,6 +231,14 @@ def _polly_wav(text: str, s: Settings) -> bytes:
         cfg = Config(connect_timeout=HTTP_TIMEOUT_SECONDS, read_timeout=HTTP_TIMEOUT_SECONDS, retries={"max_attempts": 2})
         client = boto3.Session(profile_name=s.aws_profile or None, region_name=s.aws_region).client("polly", config=cfg)
         _polly_client_cache[key] = client
+    return client
+
+
+def _polly_wav(text: str, s: Settings) -> bytes:
+    """AWS Polly (TTS_PROVIDER=polly): raw 16 kHz 16-bit mono PCM, wrapped in a WAV header so Twilio can Play it."""
+    import io
+
+    client = polly_client(s)
     resp = client.synthesize_speech(Text=text, OutputFormat="pcm", SampleRate=str(SAMPLE_RATE), VoiceId=s.polly_voice_id, Engine=s.polly_engine)
     with resp["AudioStream"] as stream:
         pcm = stream.read()
