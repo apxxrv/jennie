@@ -30,7 +30,7 @@ Request:
 
 What the judge does: Sends an invoice PDF from a vendor's real address. The PDF hides an instruction for an AI assistant. `pdf` names a file in backend/seed/invoices/ that the server attaches; swap in any of the four.
 
-What Countersign catches: Hidden-text scan finds the instruction (hard rule: hidden instructions), the document is quarantined, the payment is held and the attack is logged. Nothing in the PDF can change what the agent does.
+What Countersign catches: Hidden-text scan finds the instruction (hard rule: hidden instructions), the document is quarantined, the payment is blocked and the attack is logged. Nothing in the PDF can change what the agent does.
 
 Request:
 
@@ -143,7 +143,7 @@ Request:
 
 What the judge does: An invoice email whose HTML hides an instruction for an AI assistant (html comment). File: backend/seed/emails/poisoned_html_comment.html.
 
-What Countersign catches: The hidden-content scan finds the hidden element, which is a hard rule (hidden instructions): quarantine, hold, flag as attack.
+What Countersign catches: The hidden-content scan finds the hidden element, which is a hard rule (hidden instructions): quarantine the document, block the payment, flag as attack.
 
 Request:
 
@@ -164,7 +164,7 @@ Request:
 
 What the judge does: An invoice email whose HTML hides an instruction for an AI assistant (display none). File: backend/seed/emails/poisoned_display_none.html.
 
-What Countersign catches: The hidden-content scan finds the hidden element, which is a hard rule (hidden instructions): quarantine, hold, flag as attack.
+What Countersign catches: The hidden-content scan finds the hidden element, which is a hard rule (hidden instructions): quarantine the document, block the payment, flag as attack.
 
 Request:
 
@@ -185,7 +185,7 @@ Request:
 
 What the judge does: An invoice email whose HTML hides an instruction for an AI assistant (same color). File: backend/seed/emails/poisoned_same_color.html.
 
-What Countersign catches: The hidden-content scan finds the hidden element, which is a hard rule (hidden instructions): quarantine, hold, flag as attack.
+What Countersign catches: The hidden-content scan finds the hidden element, which is a hard rule (hidden instructions): quarantine the document, block the payment, flag as attack.
 
 Request:
 
@@ -206,7 +206,7 @@ Request:
 
 What the judge does: An invoice email whose HTML hides an instruction for an AI assistant (css class). File: backend/seed/emails/poisoned_css_class.html.
 
-What Countersign catches: The hidden-content scan finds the hidden element, which is a hard rule (hidden instructions): quarantine, hold, flag as attack.
+What Countersign catches: The hidden-content scan finds the hidden element, which is a hard rule (hidden instructions): quarantine the document, block the payment, flag as attack.
 
 Request:
 

@@ -40,7 +40,7 @@ def build_cards(s) -> list[dict]:
         {
             "title": "poisoned_invoice",
             "does": "Sends an invoice PDF from a vendor's real address. The PDF hides an instruction for an AI assistant. `pdf` names a file in backend/seed/invoices/ that the server attaches; swap in any of the four.",
-            "catches": "Hidden-text scan finds the instruction (hard rule: hidden instructions), the document is quarantined, the payment is held and the attack is logged. Nothing in the PDF can change what the agent does.",
+            "catches": "Hidden-text scan finds the instruction (hard rule: hidden instructions), the document is quarantined, the payment is blocked and the attack is logged. Nothing in the PDF can change what the agent does.",
             "request": {
                 "attacker_name": "Hacker Sam",
                 "card": "poisoned_invoice",
@@ -125,7 +125,7 @@ def build_cards(s) -> list[dict]:
         cards.append({
             "title": f"freestyle_html_{technique}",
             "does": f"An invoice email whose HTML hides an instruction for an AI assistant ({technique.replace('_', ' ')}). File: backend/seed/emails/{filename}.",
-            "catches": "The hidden-content scan finds the hidden element, which is a hard rule (hidden instructions): quarantine, hold, flag as attack.",
+            "catches": "The hidden-content scan finds the hidden element, which is a hard rule (hidden instructions): quarantine the document, block the payment, flag as attack.",
             "request": {
                 "attacker_name": "Freestyle Dee",
                 "card": "freestyle",

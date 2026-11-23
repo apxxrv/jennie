@@ -15,7 +15,7 @@
 
 - [ ] Backend up, ngrok link in `PUBLIC_BASE_URL`, all `MOCK_*` false, System status page shows the services live.
 - [ ] `POST /api/demo/reset` (Reset demo in the top bar) and `python -m scripts.warm_cache` within the last hour, so the Apify lookup is cached and the extraction is instant.
-- [ ] Browser tab 1: the Attack console (`/attack`), name field empty. Tab 2: the System status page (`/status`). Leaderboard on the second screen (press L).
+- [ ] Browser tab 1: the payment inbox at `/dashboard` (Home is at `/`). **Run Jenny** there shows the weekly run; **Send a test scam email** next to it sends the live bank-change attack and places the call. The other attack cards are in the Attack console, under **Testing & resources** in the sidebar (`/attack`). Tab 2: the System status page (`/status`). Leaderboard on the second screen (press L).
 - [ ] Vendor's phone: ringer on, not on Do Not Disturb, voicemail not in the way. Answer within 2 rings. Say the line slowly and clearly.
 - [ ] Presentation mode on (press F).
 - [ ] Auditor access: System status shows "Auditor access (MCP): read-only", and `claude mcp get countersign-auditor` says Connected (see "Auditor access (MCP), live" below).
@@ -46,9 +46,9 @@ On screen: the recorded replay of last night's real call, paused on the call car
 
 | Time | Driver does | On screen | Presenter says |
 |---|---|---|---|
-| 0:35 | Tab 1, Attack console. Types a name in "Your name" (a judge's name, if one volunteers) | "Try to rob us." with four attack cards | "Pick a card." |
-| 0:40 | Clicks the **We changed banks** card. Points at the email | The email from `ar@summit-concrete.co`, Reply-To `billing@summit-concrete.co`, new Harborline account, "Please process today" | "Lookalike domain, a different Reply-To, a new account, and pressure to pay today." |
-| 0:48 | Clicks **Launch attack** | The payment page opens at once: Summit Concrete, $18,613.56 | "It lands in the same pipeline as every real invoice." |
+| 0:35 | Tab 1, payment inbox (`/dashboard`). Clicks **Send a test scam email** | The confirm step: a fake "we changed banks" email from a lookalike Summit Concrete address, and a real call to the approved demo phone | "Pick a card." |
+| 0:40 | Points at the confirm text (the full email is in the Summit Concrete thread) | The email from `ar@summit-concrete.co`, Reply-To `billing@summit-concrete.co`, new Harborline account, "Please process today" | "Lookalike domain, a different Reply-To, a new account, and pressure to pay today." |
+| 0:48 | Clicks **Send it and call**. When Jenny's overlay shows the email held, closes it and clicks the red **Flagged by Jenny** chip on the Summit Concrete row | The payment page: Summit Concrete, $18,613.56 | "It lands in the same pipeline as every real invoice." |
 | 0:50 | Waits about 1 second | Status **Held**, score 100, hard rule "destination differs from the last verified account" | "Held in about a second. A new bank account always means a call. No model can override that." |
 | 0:55 | Points at the timeline step **Checked the vendor's identity and the request** | In red: "Vendor verified. Request from summit-concrete.co failed: email risk score 88, ..." | "CRS says Summit is real, and the request is not: email risk 88, identity mismatch." |
 | 1:02 | Points at **Found a phone number that is not from the email** | The source link `aayushswami123.github.io/Countersign/summit-concrete/contact.html`, high confidence | "Apify read Summit's own website for the number. We never call a number from the email." |
@@ -146,7 +146,7 @@ Use it when a judge asks "how would the controller or an auditor trust this?", a
 
 - `MCP_READ_TOKEN` is set in `.env` and the backend on 8000 was restarted after it was set. System status shows "Auditor access (MCP): read-only".
 - Claude Code on the demo laptop is connected: `claude mcp get countersign-auditor` shows `http://localhost:8000/mcp` and Connected. If it is missing: `claude mcp add --transport http countersign-auditor http://localhost:8000/mcp --header "Authorization: Bearer $MCP_READ_TOKEN"`.
-- Run at least one weekly payment run beforehand (Start payment run on the board), so "this week" has data.
+- Run at least one weekly payment run beforehand (**Run Jenny** in the payment inbox at `/dashboard`), so "this week" has data.
 
 **On stage.** Open a terminal in the repo, start `claude`, and ask exactly:
 
@@ -158,7 +158,7 @@ What appears: Claude calls `list_payments` and `list_payment_runs` (you see the 
 
 **Presenter:** "Every one of those calls is in the audit log too, as mcp_reader, and the email text it read comes back labeled untrusted, so a scammer's invoice can't talk to the auditor's AI either."
 
-If it is slow or fails: say "the controller can ask this any time" and show the same answer on the System status page and the board (Paid, Held, Blocked). Do not retry on stage.
+If it is slow or fails: say "the controller can ask this any time" and show the same answer on the System status page and the Payment overview on `/dashboard` (Paid, Held, Blocked). Do not retry on stage.
 
 ## 30-second booth version
 
