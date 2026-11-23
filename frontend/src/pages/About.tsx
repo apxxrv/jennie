@@ -1,27 +1,5 @@
-// The project page (/about): the landing page for judges, sponsors and anyone who arrives without a guide. Sections live in
-// components/landing/. See DESIGN.md, Project page: the one place with a hero, a loop and scroll reveals, all off with reduced motion.
-
-import { Hero, SponsorStrip } from "@/components/landing/top";
-import { ClosingCta, Footer, Journey, Proof, ScamStory, Security } from "@/components/landing/sections";
-import { HAS_APP } from "@/lib/landing";
+import { Link } from "react-router-dom";
 
 export function About() {
-  return (
-    <div className="bg-paper text-ink">
-      <a href="#journey" className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-16 focus:z-30 focus:rounded-md focus:bg-surface focus:px-3 focus:py-2">
-        Skip to how it works
-      </a>
-      <main>
-        <Hero />
-        <SponsorStrip />
-        <Journey />
-        <ScamStory />
-        <Security />
-        <Proof />
-        {/* The closing call to action sends people into the live system, so a landing build without an app leaves it out. */}
-        {HAS_APP && <ClosingCta />}
-      </main>
-      <Footer />
-    </div>
-  );
+ return <article className="jenny-about"><span className="eyebrow">ABOUT COUNTERSIGN</span><h1>Payment requests deserve more than a familiar name in your inbox.</h1><p className="about-lead">Countersign helps accounts-payable teams verify suspicious payment changes before money moves. Jenny is the assistant who checks the request, reaches the verified vendor contact, and records the evidence.</p><section><h2>Jenny is careful, direct, and accountable.</h2><p>She compares a request with the vendor information and invoice history on file. A changed bank account, a lookalike sender domain, or hidden instructions in a document can trigger a hold or a verification call. She explains the reason instead of leaving you with an unexplained warning.</p><p>On the phone, Jenny identifies herself as an automated assistant. She asks the vendor whether the change is legitimate and records the response. A denied change is blocked. An unclear answer stays on hold for a person to review.</p></section><section><h2>The account on file stays protected.</h2><p>Contact details in a suspicious email are not a reliable way to verify that same email. Jenny uses an independently verified vendor contact. A payment approval can only use the last verified account; the incoming request cannot silently replace it.</p></section><section><h2>Your team makes the decisions that need a person.</h2><p>The workspace brings together the original email, the changed details, the call transcript, and the decision history. You can open flagged messages, review the evidence, and resolve payments that remain on hold.</p></section><section><h2>This local workspace is a demonstration.</h2><p>The current setup uses seeded invoices and mock payment, identity, and calling services. The homepage conversations use synthetic voices and place no real calls. The owner briefing shows a proposed experience, while vendor verification reflects the existing payment flow.</p></section><div className="about-actions"><Link className="gloss-button" to="/dashboard">Open the payment inbox</Link><Link to="/">Back to the homepage</Link></div></article>;
 }

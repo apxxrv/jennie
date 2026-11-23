@@ -71,7 +71,7 @@ export function Hero() {
           <div className="mt-6 flex flex-wrap gap-2">
             {HAS_APP ? (
               <>
-                <Button asChild variant="primary"><AppLink to="/"><Play {...iconProps} />Start a live payment run</AppLink></Button>
+                <Button asChild variant="primary"><AppLink to="/dashboard"><Play {...iconProps} />Start a live payment run</AppLink></Button>
                 <Button asChild><AppLink to="/attack"><Crosshair {...iconProps} />Try to rob our AI</AppLink></Button>
               </>
             ) : (

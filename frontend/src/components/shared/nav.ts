@@ -14,8 +14,8 @@ export interface NavItem {
 }
 
 export const NAV: NavItem[] = [
-  { to: "/", label: "Payment run", icon: Banknote, key: "P", end: true },
-  { to: "/inbox", label: "Inbox", icon: Inbox, key: "I", liveOnly: true },
+  { to: "/dashboard", label: "Payment inbox", icon: Banknote, key: "P", end: true },
+  { to: "/inbox", label: "Conversations", icon: Inbox, key: "I", liveOnly: true },
   { to: "/attack", label: "Attack console", icon: Crosshair, key: "A", liveOnly: true },
   { to: "/leaderboard", label: "Leaderboard", icon: ListOrdered, key: "L", newTab: true },
   { to: "/red-team", label: "Red team", icon: FlaskConical, key: "T" },

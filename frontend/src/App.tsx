@@ -1,9 +1,11 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { AppShell } from "@/components/shared/app-shell";
 import { LANDING_ONLY } from "@/lib/landing";
 import { About } from "@/pages/About";
 import { AttackConsole } from "@/pages/AttackConsole";
 import { CallView } from "@/pages/CallView";
+import { Home } from "@/pages/Home";
 import { Board } from "@/pages/Board";
 import { DesignCheck } from "@/pages/DesignCheck";
 import { Inbox } from "@/pages/Inbox";
@@ -13,13 +15,27 @@ import { PaymentDetail } from "@/pages/PaymentDetail";
 import { RedTeam } from "@/pages/RedTeam";
 import { SystemStatus } from "@/pages/SystemStatus";
 
+function ScrollToLocation() {
+ const {pathname,hash}=useLocation();
+ useEffect(()=>{
+  const frame=window.requestAnimationFrame(()=>{
+   const target=hash ? document.getElementById(decodeURIComponent(hash.slice(1))) : null;
+   if(target) target.scrollIntoView({block:'start',behavior:'instant'});
+   else window.scrollTo({top:0,behavior:'instant'});
+  });
+  return ()=>window.cancelAnimationFrame(frame);
+ },[pathname,hash]);
+ return null;
+}
+
 export function App() {
   // The landing-only build (deploy/landing) is the project page alone, full screen, at every path.
   if (LANDING_ONLY) {
     return (
       <BrowserRouter>
+        <ScrollToLocation />
         <Routes>
-          <Route path="/" element={<About />} />
+          <Route path="/" element={<Home />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
@@ -27,11 +43,14 @@ export function App() {
   }
   return (
     <BrowserRouter>
+        <ScrollToLocation />
       <Routes>
+        <Route path="/" element={<Home />} />
         <Route element={<AppShell />}>
-          <Route path="/" element={<Board />}>
+          <Route path="/dashboard" element={<Board />}>
             <Route path="payments/:paymentId" element={<PaymentDetail />} />
           </Route>
+          <Route path="/payments/:paymentId" element={<Board />}><Route index element={<PaymentDetail />} /></Route>
           <Route path="/inbox" element={<Inbox />} />
           <Route path="/attack" element={<AttackConsole />} />
           <Route path="/red-team" element={<RedTeam />} />

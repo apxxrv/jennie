@@ -46,6 +46,8 @@ class Settings(BaseSettings):
     polly_voice_id: str = "Matthew"
     polly_engine: str = "neural"
     stt_api_key: str = ""
+    elevenlabs_api_key: str = ""
+    elevenlabs_voice_id: str = ""
 
     nessie_api_key: str = ""
     apify_token: str = ""

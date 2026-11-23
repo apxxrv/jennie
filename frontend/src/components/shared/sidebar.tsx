@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link, useMatch, useResolvedPath } from "react-router-dom";
 import { ArrowUpRight, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { CountersignMark } from "@/components/shared/countersign-mark";
 import { iconProps } from "@/components/shared/icon";
 import { useVisibleNav, type NavItem } from "@/components/shared/nav";
 import { cn } from "@/lib/utils";
@@ -40,14 +39,15 @@ export function Sidebar() {
       )}
     >
       <div className="flex h-12 shrink-0 items-center gap-2.5 border-b border-rule px-[18px]">
-        <CountersignMark />
-        <span className={cn("hidden font-semibold tracking-[-0.01em]", !collapsed && "md:inline")}>Countersign</span>
+        <Link to="/" aria-label="Countersign homepage" className="workspace-wordmark">{collapsed ? "C" : "Countersign"}</Link>
       </div>
 
       <nav aria-label="Main" className="flex flex-1 flex-col gap-0.5 p-2">
-        {nav.map((item) => (
+        {nav.filter(item => ["/dashboard", "/inbox", "/status"].includes(item.to)).map((item) => (
           <SidebarLink key={item.to} item={item} collapsed={collapsed} />
         ))}
+        <div className="gmail-labels"><p>Labels</p><Link to="/dashboard?filter=flagged"><i className="label-red"/>Flagged by Jenny</Link><Link to="/dashboard?filter=invoices"><i className="label-purple"/>Invoice attachments</Link><Link to="/dashboard?filter=starred"><i className="label-gold"/>Starred requests</Link></div>
+        <details className="workspace-tools"><summary>Testing & resources</summary>{nav.filter(item => !["/dashboard", "/inbox", "/status"].includes(item.to)).map(item => <SidebarLink key={item.to} item={item} collapsed={collapsed} />)}</details>
       </nav>
 
       <div className="hidden border-t border-rule p-2 md:block">

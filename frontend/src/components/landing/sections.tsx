@@ -393,7 +393,7 @@ export function Footer() {
       <span className="flex gap-4 sm:ml-auto">
         {HAS_APP && (
           <>
-            <AppLink to="/" className="text-accent hover:underline">Live demo</AppLink>
+            <AppLink to="/dashboard" className="text-accent hover:underline">Live demo</AppLink>
             <AppLink to="/leaderboard" newTab className="text-accent hover:underline">Leaderboard</AppLink>
           </>
         )}
