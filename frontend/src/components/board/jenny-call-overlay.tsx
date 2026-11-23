@@ -7,38 +7,81 @@ import { api } from '@/lib/api';
 import { ApiError, errorMessage } from '@/lib/api-error';
 import { API_URL } from '@/lib/api-url';
 import { foldCalls, type CallView } from '@/lib/calls';
+import { getDataMode } from '@/lib/data-mode';
+import { formatRelativeTime } from '@/lib/format';
 import { callSimulated, SEEDED_CALL_PAYMENTS, useServiceModes } from '@/lib/services';
 import type { CallOutcome, ContactSource, PaymentDetail, PaymentStatus } from '@/lib/types';
-import { Mic, Pause, Phone, PhoneOff, Play, ShieldCheck, Volume2 } from 'lucide-react';
+import { Mic, Pause, Phone, PhoneOff, Play, RotateCcw, ShieldCheck, Volume2 } from 'lucide-react';
 
-// "Run Jenny": starts this week's real payment run (or follows the one already going) and shows the run's real verification
-// calls as they happen, read from the run's event stream and the payment records. Nothing here is scripted: a call the server
+// "Run Jenny": starts this week's real payment run (or follows the one already going, or shows the one already finished) and
+// shows the run's real verification calls, read from the run's event stream and the payment records. Nothing here is scripted: a call the server
 // simulated says so, and a call it dialed says that.
 
-/** Start the weekly payment run, unless one is already going; then follow that one. */
+/**
+ * Run Jenny. Live: if the server's latest run is going, follow it; if it completed, the week is already checked, so show that
+ * run instead of starting an empty one over zero open invoices; only with no run, or a failed one, start a run.
+ * runAgain resets the demo week (the top bar's reset, admin key and all) and then starts a fresh run.
+ */
 export function useRunJenny() {
- const {runId,summary,runFailed,startRun,followRun}=useCurrentRun();
+ const {runId,summary,runFailed,startRun,followRun,forgetAfterReset,resetCount}=useCurrentRun();
  const [starting,setStarting]=useState(false);
+ const [resetting,setResetting]=useState(false);
  const [error,setError]=useState<string|null>(null);
+ const [resetError,setResetError]=useState<string|null>(null);
+ const busy=useRef(false);
+ const resets=useRef(resetCount);
+ resets.current=resetCount;
+ const start=useCallback(async()=>{
+  try{await startRun();}
+  catch(err){
+   // 409: a run started elsewhere (another tab, a phone) is still going. Follow it instead of starting a second one.
+   if(!(err instanceof ApiError&&err.status===409))throw err;
+   const {run:latest}=await api.latestRun();
+   if(!latest)throw err;
+   followRun(latest.run_id);
+  }
+ },[startRun,followRun]);
  const run=useCallback(async()=>{
-  setError(null);setStarting(true);
+  if(busy.current)return;
+  busy.current=true;setError(null);setResetError(null);
   try{
-   if(runId&&!summary.completed&&!runFailed){
+   if(getDataMode()==='live'){
+    const {run:latest}=await api.latestRun();
+    if(latest&&(latest.status==='running'||latest.status==='completed')){
+     if(latest.run_id!==runId)followRun(latest.run_id);
+     return;
+    }
+   }else if(runId&&!summary.completed&&!runFailed){
     const current=await api.run(runId).catch(()=>null);
     if(current?.status==='running')return;
    }
-   try{await startRun();}
-   catch(err){
-    // 409: a run started elsewhere (another tab, a phone) is still going. Follow it instead of starting a second one.
-    if(!(err instanceof ApiError&&err.status===409))throw err;
-    const {run:latest}=await api.latestRun();
-    if(!latest)throw err;
-    followRun(latest.run_id);
-   }
+   setStarting(true);
+   await start();
   }catch(err){setError(errorMessage(err));}
-  finally{setStarting(false);}
- },[runId,summary.completed,runFailed,startRun,followRun]);
- return {run,starting,error};
+  finally{busy.current=false;setStarting(false);}
+ },[runId,summary.completed,runFailed,start,followRun]);
+ const runAgain=useCallback(async()=>{
+  if(busy.current)return;
+  busy.current=true;setError(null);setResetError(null);setResetting(true);
+  const before=resets.current;
+  try{
+   try{await api.resetDemo(true);}
+   catch(err){setResetError(errorMessage(err));return;} // refused or failed: nothing changed, the last run stays on screen
+   setStarting(true);
+   // The reset also arrives on the global channel, and the shell forgets the current run when it does. Wait for it (briefly), so
+   // it cannot land after the new run starts and forget that one instead.
+   for(let waited=0;resets.current===before&&waited<4000;waited+=100)await new Promise(r=>setTimeout(r,100));
+   forgetAfterReset();
+   await start();
+  }catch(err){setError(errorMessage(err));}
+  finally{busy.current=false;setResetting(false);setStarting(false);}
+ },[forgetAfterReset,start]);
+ return {run,runAgain,starting,resetting,error,resetError};
+}
+
+/** Server times from SQLite carry no zone; they are UTC. */
+function serverTime(value:string):Date{
+ return new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(value)?value:`${value}Z`);
 }
 
 const OUTCOME_TEXT:Record<CallOutcome,{title:string;detail:string}>={
@@ -69,7 +112,7 @@ function callKind(call:CallView,detail:PaymentDetail|undefined,simulatedNow:bool
   :{pill:'Simulated call',line:'Simulated call · nothing was dialed'};
 }
 
-export function JennyCallOverlay({open,onOpenChange,starting,error,onRetry}:{open:boolean;onOpenChange:(value:boolean)=>void;starting:boolean;error:string|null;onRetry:()=>void}) {
+export function JennyCallOverlay({open,onOpenChange,starting,resetting,error,resetError,onRetry,onRunAgain}:{open:boolean;onOpenChange:(value:boolean)=>void;starting:boolean;resetting:boolean;error:string|null;resetError:string|null;onRetry:()=>void;onRunAgain:()=>void}) {
  const {runId,events,summary,runFailed}=useCurrentRun();
  const modes=useServiceModes();
  const calls=useMemo(()=>foldCalls(events),[events]);
@@ -88,6 +131,10 @@ export function JennyCallOverlay({open,onOpenChange,starting,error,onRetry}:{ope
  const kind=call?callKind(call,detail,modes.known?callSimulated({paymentId:call.paymentId},modes):null):null;
  const contact=detail?.calls.at(-1)?.contact??null;
  const running=Boolean(runId)&&!summary.completed&&!runFailed;
+ // A finished run: the last one the server has. Its time comes from the run's own run.completed event.
+ const finishedAt=useMemo(()=>events.find(e=>e.type==='run.completed')?.at??null,[events]);
+ const finished=Boolean(runId)&&summary.completed&&!starting;
+ const runAgain=finished?<RunAgain resetting={resetting} error={resetError} onRunAgain={onRunAgain}/>:null;
 
  // Voice: the real transcript, line by line, through /api/jenny/voice. Text only when no voice is connected or it fails.
  const status=useQuery({queryKey:['jenny-voice-status'],queryFn:voiceStatus,enabled:open,staleTime:60_000,retry:false});
@@ -136,9 +183,10 @@ export function JennyCallOverlay({open,onOpenChange,starting,error,onRetry}:{ope
  },[open,playing,voiceReady,spoken,nextText,nextSpeaker,audioElement]);
 
  const voiceLabel=status.data?.provider==='polly'?'AWS Polly voice':status.data?.provider==='elevenlabs'?'ElevenLabs voice':'Text only';
- const title=running||starting?'Jenny is checking this week’s payments':'Jenny’s verification calls';
- const pill=kind?.pill??(running||starting?'Payment run':'Results');
- const subtitle=kind?.line??(running||starting?'The real payment run, live from the server':'From the latest payment run');
+ const title=running||starting?'Jenny is checking this week’s payments':finished?'Jenny’s last payment run':'Jenny’s verification calls';
+ const pill=kind?.pill??(running||starting?'Payment run':finished?'Last run':'Results');
+ const finishedLine=finished&&finishedAt?`Last run, finished ${formatRelativeTime(serverTime(finishedAt))}`:null;
+ const subtitle=[finishedLine,kind?.line??(running||starting?'The real payment run, live from the server':finishedLine?null:'From the latest payment run')].filter(Boolean).join(' · ');
 
  let phone:ReactNode;
  let panel:ReactNode;
@@ -155,7 +203,7 @@ export function JennyCallOverlay({open,onOpenChange,starting,error,onRetry}:{ope
  }else if(!call&&runId&&summary.completed){
   const none=summary.invoiceCount===0;
   phone=<PhoneMessage label="RUN COMPLETE" title="This week’s payment run" line={none?'No open invoices':'No calls were needed'}/>;
-  panel=<Note title={none?'There were no open invoices to check.':'This run needed no verification calls.'} text={none?'Every invoice this week was already handled by an earlier run. Reset the demo to run the week again.':'No payment asked to change where its money goes.'}><RunCounts paid={summary.paid} held={summary.held} blocked={summary.blocked}/></Note>;
+  panel=<Note title={none?'There were no open invoices to check.':'This run needed no verification calls.'} text={none?'Every invoice this week was already handled by an earlier run.':'No payment asked to change where its money goes.'}><RunCounts paid={summary.paid} held={summary.held} blocked={summary.blocked}/>{runAgain}</Note>;
  }else if(!call){
   phone=<PhoneMessage label="READY" title="This week’s payment run" line="Not started"/>;
   panel=<Note title="No payment run yet." text="Run Jenny to check this week’s invoices."><button className="begin-jenny-call" onClick={onRetry}><Phone size={17}/> Run Jenny</button></Note>;
@@ -172,10 +220,18 @@ export function JennyCallOverlay({open,onOpenChange,starting,error,onRetry}:{ope
    <div className="call-transcript-card" aria-live="polite">{line?<><span><Mic size={14}/>{line.speaker==='agent'?'Jenny':call.vendor}<small>{shown+1} / {lines.length}</small></span><p>“{line.text}”</p></>:<><span><Mic size={14}/>Transcript</span><p>{call.phase==='queued'?'The call has not started yet.':'Waiting for the first words.'}</p></>}</div>
    {lines.length>0&&<div className="call-line-controls">{lines.map((_,i)=><button key={i} aria-label={`Show line ${i+1}`} aria-pressed={shown===i} onClick={()=>{setManual(i);setSpoken(i);setPlaying(voiceReady&&!voiceError);}}/>)}</div>}
    {outcome?<div className="call-demo-result"><ShieldCheck size={19}/><div><strong>{outcome.title}</strong><p>{outcome.detail}</p>{paymentStatus&&<small>{paymentStatus}</small>}</div></div>:null}
-   {voiceError&&<p role="status" className="call-audio-error">{voiceError}</p>}</>;
+   {voiceError&&<p role="status" className="call-audio-error">{voiceError}</p>}
+   {runAgain}</>;
  }
 
  return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="jenny-call-dialog" aria-describedby="jenny-call-description"><div className="call-overlay-head"><JennyAvatar/><div><DialogTitle>{title}</DialogTitle><p id="jenny-call-description">{subtitle}</p></div><span className="call-demo-pill">{pill}</span></div><div className="inbox-call-layout">{phone}<div className="call-overlay-conversation">{panel}<small className="elevenlabs-connection">{status.data?.configured?`Jenny speaks the real transcript with the ${voiceLabel}.`:'No voice is connected, so the transcript is shown as text.'}</small></div></div><audio ref={setAudioElement} onEnded={()=>setSpoken(value=>value+1)} preload="none"/></DialogContent></Dialog>;
+}
+
+/** After a finished run: reset the demo week and run Jenny on it again, live. A refused reset changes nothing and says so. */
+function RunAgain({resetting,error,onRunAgain}:{resetting:boolean;error:string|null;onRunAgain:()=>void}){
+ return <><button className="begin-jenny-call" onClick={onRunAgain} disabled={resetting}><RotateCcw size={17}/> {resetting?'Resetting the week…':'Run the week again'}</button>
+  <small className="elevenlabs-connection">Resets the demo to the seeded week (the leaderboard is kept), then Jenny checks it again, live.</small>
+  {error&&<p role="status" className="call-audio-error">The demo was not reset, so nothing changed. {error.replace(/\.?$/,'.')}</p>}</>;
 }
 
 function PhoneMessage({label,title,line}:{label:string;title:string;line:string}){

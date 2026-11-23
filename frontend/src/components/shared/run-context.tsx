@@ -32,6 +32,8 @@ interface CurrentRun {
   clearRun: () => void;
   /** After a demo reset: forget the run and every cached record. */
   forgetAfterReset: () => void;
+  /** How many demo resets the global channel has delivered to this tab. */
+  resetCount: number;
   pinned: PinnedAttack | null;
   /** The pinned attack's mini-run, from attack.logged through run.report. */
   pinnedEvents: RunEvent[];
@@ -262,8 +264,8 @@ export function RunProvider({ children }: { children: ReactNode }) {
   }, [resets, forgetAfterReset]);
 
   const value = useMemo(
-    () => ({ runId, events, status, summary, startRun, followRun, clearRun, forgetAfterReset, runFailed, pinned, pinnedEvents, pinAttack, unpin, allEvents }),
-    [runId, events, status, summary, startRun, followRun, clearRun, forgetAfterReset, runFailed, pinned, pinnedEvents, pinAttack, unpin, allEvents],
+    () => ({ runId, events, status, summary, startRun, followRun, clearRun, forgetAfterReset, resetCount: resets, runFailed, pinned, pinnedEvents, pinAttack, unpin, allEvents }),
+    [runId, events, status, summary, startRun, followRun, clearRun, forgetAfterReset, resets, runFailed, pinned, pinnedEvents, pinAttack, unpin, allEvents],
   );
   return <RunContext.Provider value={value}>{children}</RunContext.Provider>;
 }
