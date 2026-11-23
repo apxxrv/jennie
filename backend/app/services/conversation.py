@@ -104,10 +104,10 @@ def safe_reply(text: str, last4: str) -> Optional[str]:
 
 
 def _ask_claude(script: voice.CallScript, history: list[dict], utterance: str) -> Optional[tuple[str, str]]:
-    import anthropic
+    from app.services.llm import claude_client
 
     s = get_settings()
-    client = anthropic.Anthropic(api_key=s.anthropic_api_key, timeout=CLAUDE_SECONDS, max_retries=0)
+    client = claude_client(timeout=CLAUDE_SECONDS, max_retries=0)
     clean = lambda x: str(x).replace("<<<", "").replace(">>>", "")[:300]  # noqa: E731
     convo = "\n".join(f"{'Agent' if l.get('speaker') == 'agent' else 'Vendor'}: {clean(l.get('text', ''))}" for l in history[-8:])
     content = (
@@ -130,7 +130,7 @@ def _ask_claude(script: voice.CallScript, history: list[dict], utterance: str) -
 
 def enabled() -> bool:
     s = get_settings()
-    return not s.mock_claude and bool(s.anthropic_api_key)
+    return not s.mock_claude and s.claude_ready
 
 
 async def respond(script: voice.CallScript, history: list[dict], utterance: str) -> Turn:

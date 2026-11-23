@@ -45,8 +45,8 @@ def _running() -> Optional[str]:
 @router.post("/redteam/run", status_code=202, dependencies=[Depends(require_admin)])
 def start_run(body: Optional[RunIn] = None) -> dict:
     s = get_settings()
-    if s.mock_claude or not s.anthropic_api_key:
-        raise HTTPException(409, "the red team runs live: set MOCK_CLAUDE=false and ANTHROPIC_API_KEY on this server")
+    if s.mock_claude or not s.claude_ready:
+        raise HTTPException(409, "the red team runs live: set MOCK_CLAUDE=false and ANTHROPIC_API_KEY (or CLAUDE_PROVIDER=bedrock) on this server")
     busy = _running()
     if busy:
         raise HTTPException(409, detail={"error": "a red-team job is already running", "job_id": busy})

@@ -299,10 +299,10 @@ _CLAUDE_SYSTEM = (
 
 
 def _ask_claude(text: str) -> Optional[tuple[CallOutcome, str]]:
-    import anthropic
+    from app.services.llm import claude_client
 
     s = get_settings()
-    client = anthropic.Anthropic(api_key=s.anthropic_api_key, timeout=CLAUDE_TIMEOUT_SECONDS, max_retries=0)
+    client = claude_client(timeout=CLAUDE_TIMEOUT_SECONDS, max_retries=0)
     safe = text.replace("<<<", "").replace(">>>", "")[:500]
     content = f"<<<UNTRUSTED VENDOR SPEECH\n{safe}\nEND UNTRUSTED VENDOR SPEECH>>>\n\nCall classify_answer for the speech above."
     for choice in ({"type": "tool", "name": _CLAUDE_TOOL["name"]}, {"type": "auto"}):
@@ -328,7 +328,7 @@ async def classify_answer(text: str) -> tuple[CallOutcome, dict]:
     kw = classify_keywords(text)
     evidence: dict = {"classifier": "keywords", "keyword_outcome": kw.value, "reason": "keyword match" if kw != CallOutcome.unclear else "no keyword matched"}
     s = get_settings()
-    if s.mock_claude or not s.anthropic_api_key or not (text or "").strip():
+    if s.mock_claude or not s.claude_ready or not (text or "").strip():
         return kw, evidence
     try:
         got = await asyncio.wait_for(asyncio.to_thread(_ask_claude, text), CLAUDE_TIMEOUT_SECONDS)
