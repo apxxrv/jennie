@@ -10,7 +10,8 @@ import { foldCalls, type CallView } from '@/lib/calls';
 import { getDataMode } from '@/lib/data-mode';
 import { formatRelativeTime } from '@/lib/format';
 import { callSimulated, SEEDED_CALL_PAYMENTS, useServiceModes } from '@/lib/services';
-import type { CallOutcome, ContactSource, PaymentDetail, PaymentStatus } from '@/lib/types';
+import type { TestLaunch } from '@/components/board/jenny-test-call';
+import type { CallOutcome, ContactSource, PaymentDetail, PaymentStatus, RunEvent } from '@/lib/types';
 import { Mic, Pause, Phone, PhoneOff, Play, RotateCcw, ShieldCheck, Volume2 } from 'lucide-react';
 
 // "Run Jenny": starts this week's real payment run (or follows the one already going, or shows the one already finished) and
@@ -103,19 +104,27 @@ async function voiceStatus():Promise<VoiceStatus>{
 }
 
 /** How the server placed this call. Null until it is known. */
-function callKind(call:CallView,detail:PaymentDetail|undefined,simulatedNow:boolean|null):{pill:string;line:string}|null{
+function callKind(call:CallView,detail:PaymentDetail|undefined,simulatedNow:boolean|null):{pill:string;line:string;live:boolean}|null{
  const simulated=detail?.calls.at(-1)?.simulated??simulatedNow;
  if(simulated==null)return null;
- if(!simulated)return {pill:'Live call',line:'Live call to the vendor’s verified number'};
+ if(!simulated)return {pill:'Live call',line:'Live call to the vendor’s verified number',live:true};
  return SEEDED_CALL_PAYMENTS.includes(call.paymentId)
-  ?{pill:'Demo call',line:'Demo call from the seeded run · nothing was dialed'}
-  :{pill:'Simulated call',line:'Simulated call · nothing was dialed'};
+  ?{pill:'Demo call',line:'Demo call from the seeded run · nothing was dialed',live:false}
+  :{pill:'Simulated call',line:'Simulated call · nothing was dialed',live:false};
 }
 
-export function JennyCallOverlay({open,onOpenChange,starting,resetting,error,resetError,onRetry,onRunAgain}:{open:boolean;onOpenChange:(value:boolean)=>void;starting:boolean;resetting:boolean;error:string|null;resetError:string|null;onRetry:()=>void;onRunAgain:()=>void}) {
- const {runId,events,summary,runFailed}=useCurrentRun();
+/** "test": the overlay follows the test scam email this tab sent (its own mini-run and payment), not the weekly run. */
+export interface TestFocus {sending:boolean;error:string|null;launched:TestLaunch|null}
+
+export function JennyCallOverlay({open,onOpenChange,starting,resetting,error,resetError,onRetry,onRunAgain,test}:{open:boolean;onOpenChange:(value:boolean)=>void;starting:boolean;resetting:boolean;error:string|null;resetError:string|null;onRetry:()=>void;onRunAgain:()=>void;test:TestFocus|null}) {
+ const current=useCurrentRun();
+ const {summary,runFailed,pinned,pinnedEvents}=current;
+ const launched=test?.launched??null;
+ const testEvents=useMemo(()=>launched&&pinned?.paymentId===launched.paymentId?pinnedEvents:[],[launched,pinned?.paymentId,pinnedEvents]);
+ const events=test?testEvents:current.events;
+ const runId=test?(launched?.runId??null):current.runId;
  const modes=useServiceModes();
- const calls=useMemo(()=>foldCalls(events),[events]);
+ const calls=useMemo(()=>{const all=foldCalls(events);return launched&&test?all.filter(c=>c.paymentId===launched.paymentId):all;},[events,launched,test]);
  // Each payment's latest status, from the same events the board reads, so the result shows as soon as the server decides.
  const statusOf=useMemo(()=>{const out=new Map<string,PaymentStatus>();for(const e of events){if(e.type==='payment.paid')out.set(e.payment_id,'paid');else if(e.type==='payment.held')out.set(e.payment_id,'held');else if(e.type==='payment.blocked')out.set(e.payment_id,'blocked');}return out;},[events]);
  const details=useQueries({queries:calls.map(c=>({
@@ -130,15 +139,16 @@ export function JennyCallOverlay({open,onOpenChange,starting,resetting,error,res
  const detail=details[index]?.data;
  const kind=call?callKind(call,detail,modes.known?callSimulated({paymentId:call.paymentId},modes):null):null;
  const contact=detail?.calls.at(-1)?.contact??null;
- const running=Boolean(runId)&&!summary.completed&&!runFailed;
+ const running=!test&&Boolean(runId)&&!summary.completed&&!runFailed;
  // A finished run: the last one the server has. Its time comes from the run's own run.completed event.
  const finishedAt=useMemo(()=>events.find(e=>e.type==='run.completed')?.at??null,[events]);
- const finished=Boolean(runId)&&summary.completed&&!starting;
+ const finished=!test&&Boolean(runId)&&summary.completed&&!starting;
  const runAgain=finished?<RunAgain resetting={resetting} error={resetError} onRunAgain={onRunAgain}/>:null;
 
  // Voice: the real transcript, line by line, through /api/jenny/voice. Text only when no voice is connected or it fails.
  const status=useQuery({queryKey:['jenny-voice-status'],queryFn:voiceStatus,enabled:open,staleTime:60_000,retry:false});
- const voiceReady=Boolean(status.data?.configured);
+ // A live call is happening on the phone: the browser stays quiet (it would talk over the call) and shows the words as text.
+ const voiceReady=Boolean(status.data?.configured)&&kind!=null&&!kind.live;
  const [playing,setPlaying]=useState(false);
  const [spoken,setSpoken]=useState(0);
  const [voiceError,setVoiceError]=useState('');
@@ -183,14 +193,33 @@ export function JennyCallOverlay({open,onOpenChange,starting,resetting,error,res
  },[open,playing,voiceReady,spoken,nextText,nextSpeaker,audioElement]);
 
  const voiceLabel=status.data?.provider==='polly'?'AWS Polly voice':status.data?.provider==='elevenlabs'?'ElevenLabs voice':'Text only';
- const title=running||starting?'Jenny is checking this week’s payments':finished?'Jenny’s last payment run':'Jenny’s verification calls';
- const pill=kind?.pill??(running||starting?'Payment run':finished?'Last run':'Results');
+ const title=test?'Jenny is checking the test scam email':running||starting?'Jenny is checking this week’s payments':finished?'Jenny’s last payment run':'Jenny’s verification calls';
+ const pill=kind?.pill??(test?'Test email':running||starting?'Payment run':finished?'Last run':'Results');
  const finishedLine=finished&&finishedAt?`Last run, finished ${formatRelativeTime(serverTime(finishedAt))}`:null;
- const subtitle=[finishedLine,kind?.line??(running||starting?'The real payment run, live from the server':finishedLine?null:'From the latest payment run')].filter(Boolean).join(' · ');
+ const subtitle=[finishedLine,kind?.line??(test?'The test attack, live from the server':running||starting?'The real payment run, live from the server':finishedLine?null:'From the latest payment run')].filter(Boolean).join(' · ');
 
  let phone:ReactNode;
  let panel:ReactNode;
- if(error){
+ const testStarted=events.some(e=>e.type==='run.started');
+ const testSettled=launched?statusOf.get(launched.paymentId):undefined;
+ if(test&&!call){
+  if(test.error){
+   phone=<PhoneMessage label="NOT SENT" title="Test scam email" line="Nothing was sent"/>;
+   panel=<Note title="The test email was not sent." text={`${test.error.replace(/\.?$/,'.')} Nothing was added to the inbox and no call was placed.`}/>;
+  }else if(test.sending||!launched){
+   phone=<PhoneMessage label="SENDING" title="Test scam email" line="Sending…"/>;
+   panel=<Note title="Sending the test email." text="It goes into Summit Concrete’s thread in the payment inbox."/>;
+  }else if(!testStarted&&launched.queued){
+   phone=<PhoneMessage label="WAITING" title="Test scam email" line="In the inbox, waiting its turn"/>;
+   panel=<Note title="Waiting for the run ahead of it to finish." text={`Another payment run, or an earlier test and its call, is still going. This email is checked right after${launched.position>1?`; it was number ${launched.position} in line when it was sent`:''}.`}/>;
+  }else if(testSettled&&testSettled!=='pending'){
+   phone=<PhoneMessage label="CHECKED" title="Test scam email" line={STATUS_TEXT[testSettled]}/>;
+   panel=<Note title={STATUS_TEXT[testSettled]} text="Jenny decided without a verification call."><TestSteps events={events} paymentId={launched.paymentId} call={undefined}/></Note>;
+  }else{
+   phone=<PhoneMessage label="CHECKING" title="Test scam email" line={testStarted?'Email received':'Starting…'}/>;
+   panel=<Note title={testStarted?'Email received. Jenny is checking it.':'The email is in the inbox.'} text="A call starts only if the email asks to send money to a new account."><TestSteps events={events} paymentId={launched.paymentId} call={undefined}/></Note>;
+  }
+ }else if(error){
   phone=<PhoneMessage label="RUN NOT STARTED" title="Jenny couldn’t start" line="No payment run is in progress."/>;
   panel=<Note title="The payment run did not start." text={error}><button className="begin-jenny-call" onClick={onRetry}><Phone size={17}/> Try again</button></Note>;
  }else if(!call&&(starting||(running&&!summary.completed))){
@@ -214,17 +243,34 @@ export function JennyCallOverlay({open,onOpenChange,starting,resetting,error,res
   const source=call.contactSource?SOURCE_TEXT[call.contactSource]:null;
   const sourceUrl=call.finding?.sourceUrl??contact?.source_url??null;
   const speaking=playing&&!loading&&spoken<lines.length;
-  phone=<div className="glass-call-phone"><div className="glass-phone-notch"/><div className="phone-top-clock"><span>{pill}</span><span>{call.phase==='ended'?'':'●'}</span></div><span className="glass-phone-label">{PHASE_LABEL[call.phase]}</span><h3>{call.vendor||'The vendor'}</h3><p>{contact?.phone?`Verified number ${contact.phone}`:source??'Finding the verified number'}</p><div className={`jenny-calling-avatar ${speaking?'is-talking':''}`}><JennyAvatar/></div><span className="calling-person">{outcome?outcome.title:call.phase==='live'?`Speaking with ${call.vendor}`:call.phase==='dialing'?`Calling ${call.vendor}`:'Queued for a verification call'}</span><div className={`overlay-wave ${speaking?'is-speaking':''}`} aria-label={speaking?'Speaking':'Quiet'}>{Array.from({length:21},(_,i)=><i key={i} style={{height:10+(i*19%30),animationDelay:`${i*.06}s`}}/>)}</div><div className="glass-phone-controls"><button aria-label={playing?'Pause the call audio':'Play the call audio'} disabled={!voiceReady||lines.length===0} onClick={()=>{setVoiceError('');if(spoken>=lines.length)setSpoken(0);setPlaying(!playing);}}>{playing?<Pause size={21}/>:<Play size={21}/>}</button><button className="end-jenny-call" aria-label="Close" onClick={()=>onOpenChange(false)}><PhoneOff size={21}/></button><span><Volume2 size={19}/></span></div><span className="phone-audio-provider">{loading?'Preparing audio…':voiceLabel}</span><div className="phone-bottom-line"/></div>;
+  phone=<div className="glass-call-phone"><div className="glass-phone-notch"/><div className="phone-top-clock"><span>{pill}</span><span>{call.phase==='ended'?'':'●'}</span></div><span className="glass-phone-label">{PHASE_LABEL[call.phase]}</span><h3>{call.vendor||'The vendor'}</h3><p>{contact?.phone?`Verified number ${contact.phone}`:source??'Finding the verified number'}</p><div className={`jenny-calling-avatar ${speaking?'is-talking':''}`}><JennyAvatar/></div><span className="calling-person">{outcome?outcome.title:call.phase==='live'?`Speaking with ${call.vendor}`:call.phase==='dialing'?`Calling ${call.vendor}`:'Queued for a verification call'}</span><div className={`overlay-wave ${speaking?'is-speaking':''}`} aria-label={speaking?'Speaking':'Quiet'}>{Array.from({length:21},(_,i)=><i key={i} style={{height:10+(i*19%30),animationDelay:`${i*.06}s`}}/>)}</div><div className="glass-phone-controls"><button aria-label={playing?'Pause the call audio':'Play the call audio'} disabled={!voiceReady||lines.length===0} onClick={()=>{setVoiceError('');if(spoken>=lines.length)setSpoken(0);setPlaying(!playing);}}>{playing?<Pause size={21}/>:<Play size={21}/>}</button><button className="end-jenny-call" aria-label="Close" onClick={()=>onOpenChange(false)}><PhoneOff size={21}/></button><span><Volume2 size={19}/></span></div><span className="phone-audio-provider">{kind?.live?'The audio is on the phone':loading?'Preparing audio…':voiceLabel}</span><div className="phone-bottom-line"/></div>;
   panel=<><span className="eyebrow">VENDOR VERIFICATION</span><h3>A direct question.<br/>An answer on record.</h3><p>{source?<>{source}{sourceUrl&&<> · <a href={sourceUrl} target="_blank" rel="noreferrer">see the page</a></>}</>:'Jenny calls a number found independently, never one from the email.'}</p>
    {calls.length>1&&<label className="call-vendor-picker">Choose a call<select value={call.paymentId} onChange={e=>setPicked(e.target.value)}>{calls.map(c=><option key={c.paymentId} value={c.paymentId}>{c.vendor||c.paymentId}</option>)}</select></label>}
    <div className="call-transcript-card" aria-live="polite">{line?<><span><Mic size={14}/>{line.speaker==='agent'?'Jenny':call.vendor}<small>{shown+1} / {lines.length}</small></span><p>“{line.text}”</p></>:<><span><Mic size={14}/>Transcript</span><p>{call.phase==='queued'?'The call has not started yet.':'Waiting for the first words.'}</p></>}</div>
+   {test&&launched&&<TestSteps events={events} paymentId={launched.paymentId} call={call}/>}
    {lines.length>0&&<div className="call-line-controls">{lines.map((_,i)=><button key={i} aria-label={`Show line ${i+1}`} aria-pressed={shown===i} onClick={()=>{setManual(i);setSpoken(i);setPlaying(voiceReady&&!voiceError);}}/>)}</div>}
    {outcome?<div className="call-demo-result"><ShieldCheck size={19}/><div><strong>{outcome.title}</strong><p>{outcome.detail}</p>{paymentStatus&&<small>{paymentStatus}</small>}</div></div>:null}
    {voiceError&&<p role="status" className="call-audio-error">{voiceError}</p>}
    {runAgain}</>;
  }
 
- return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="jenny-call-dialog" aria-describedby="jenny-call-description"><div className="call-overlay-head"><JennyAvatar/><div><DialogTitle>{title}</DialogTitle><p id="jenny-call-description">{subtitle}</p></div><span className="call-demo-pill">{pill}</span></div><div className="inbox-call-layout">{phone}<div className="call-overlay-conversation">{panel}<small className="elevenlabs-connection">{status.data?.configured?`Jenny speaks the real transcript with the ${voiceLabel}.`:'No voice is connected, so the transcript is shown as text.'}</small></div></div><audio ref={setAudioElement} onEnded={()=>setSpoken(value=>value+1)} preload="none"/></DialogContent></Dialog>;
+ return <Dialog open={open} onOpenChange={onOpenChange}><DialogContent className="jenny-call-dialog" aria-describedby="jenny-call-description"><div className="call-overlay-head"><JennyAvatar/><div><DialogTitle>{title}</DialogTitle><p id="jenny-call-description">{subtitle}</p></div><span className="call-demo-pill">{pill}</span></div><div className="inbox-call-layout">{phone}<div className="call-overlay-conversation">{panel}<small className="elevenlabs-connection">{test&&!kind?'A live call is heard on the phone and shown here as text. Jenny’s browser voice is used only for simulated calls.':kind?.live?'This call is happening on the phone, so its words are shown here as text and not spoken in the browser.':status.data?.configured?`Jenny speaks the real transcript with the ${voiceLabel}.`:'No voice is connected, so the transcript is shown as text.'}</small></div></div><audio ref={setAudioElement} onEnded={()=>setSpoken(value=>value+1)} preload="none"/></DialogContent></Dialog>;
+}
+
+/** The test email's stages so far, each from an event that has arrived. */
+function TestSteps({events,paymentId,call}:{events:RunEvent[];paymentId:string;call:CallView|undefined}){
+ const steps:string[]=[];
+ if(events.some(e=>e.type==='run.started'||e.type==='invoice.parsed'))steps.push('Email received');
+ if(events.some(e=>e.type==='payment.held'&&e.payment_id===paymentId))steps.push(call?'Held: it asks to pay a new bank account':'Held');
+ if(call?.contactSource)steps.push(SOURCE_TEXT[call.contactSource]);
+ if(call&&call.phase!=='queued')steps.push(call.phase==='dialing'?'Calling':call.phase==='live'?'On the call':'Call ended');
+ if(call?.outcome)steps.push(OUTCOME_TEXT[call.outcome].title);
+ const last=[...events].reverse().find(e=>(e.type==='payment.paid'||e.type==='payment.held'||e.type==='payment.blocked')&&e.payment_id===paymentId);
+ // The status the call led to: one decided at or after the outcome (a denial blocks), or the hold that stays for an unclear answer.
+ const after=last&&call?.outcome&&(call.outcome==='unclear'||call.outcome==='no_answer'||(call.endedAt!=null&&last.at>=call.endedAt));
+ if(after&&last)steps.push(STATUS_TEXT[last.type==='payment.paid'?'paid':last.type==='payment.held'?'held':'blocked']);
+ if(steps.length===0)return null;
+ return <ol className="jenny-test-steps">{steps.map(s=><li key={s}>{s}</li>)}</ol>;
 }
 
 /** After a finished run: reset the demo week and run Jenny on it again, live. A refused reset changes nothing and says so. */
