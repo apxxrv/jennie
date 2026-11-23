@@ -23,7 +23,7 @@ from app.config import get_settings
 from app.services import liveness
 from app.models import Invoice
 
-log = logging.getLogger("countersign.extract")
+log = logging.getLogger("jenny.extract")
 
 TOOL_NAME = "record_invoice"
 SCHEMA_VERSION = 1

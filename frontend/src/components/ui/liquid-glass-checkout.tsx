@@ -335,7 +335,7 @@ export const WaterCard = React.forwardRef<WaterCardHandle, WaterCardProps>(funct
           </div>
           <div className="nc-ui">
             <div className="nc-top">
-              <span className="nc-logo"><span className="nc-cloud"><Cloud /></span>Countersign</span>
+              <span className="nc-logo"><span className="nc-cloud"><Cloud /></span>Jenny</span>
               <span className="nc-cl"><Contactless /></span>
             </div>
             <span className="nc-chip"><Chip /></span>

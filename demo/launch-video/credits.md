@@ -1,6 +1,6 @@
-# Countersign launch video: credits and sources
+# Jenny launch video: credits and sources
 
-`countersign-launch.mp4` (1:41.5, 1080p H.264, AAC) and `countersign-30s.mp4` (29.7 s). Built at Cal Hacks 13.0.
+`jenny-launch.mp4` (1:41.5, 1080p H.264, AAC) and `jenny-30s.mp4` (29.7 s). Built at Cal Hacks 13.0.
 
 ## What is real in the video
 

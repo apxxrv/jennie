@@ -23,7 +23,7 @@ from typing import Optional
 from app.config import get_settings
 from app.services import voice
 
-log = logging.getLogger("countersign.conversation")
+log = logging.getLogger("jenny.conversation")
 
 CLAUDE_SECONDS = 2.5  # the reply must be written, voiced and returned inside Twilio's wait for our TwiML
 MAX_TURNS = 3  # conversational replies per call (questions, asides) before the scripted re-ask takes over; the 60 s rule still ends it

@@ -3,7 +3,7 @@
 
 import { useSyncExternalStore } from "react";
 
-const STORAGE_KEY = "countersign-presenting";
+const STORAGE_KEY = "jenny-presenting";
 
 function read(): boolean {
   return document.documentElement.hasAttribute("data-presenting");

@@ -38,7 +38,7 @@ export function DesignCheck() {
   const setTheme = (t: Theme) => {
     document.documentElement.dataset.theme = t;
     try {
-      localStorage.setItem("countersign-theme", t);
+      localStorage.setItem("jenny-theme", t);
     } catch {
       // Storage can be unavailable; the toggle still works for this visit.
     }
@@ -50,7 +50,7 @@ export function DesignCheck() {
       <header className="border-b border-rule bg-paper">
         <div className="mx-auto flex h-12 max-w-[1120px] items-center justify-between gap-4 px-4 sm:px-6">
           <div className="flex items-baseline gap-3">
-            <span className="font-semibold">Countersign</span>
+            <span className="font-semibold">Jenny</span>
             <span className="text-sm text-ink-muted">Design check</span>
           </div>
           <ThemeSwitch theme={theme} onChange={setTheme} />

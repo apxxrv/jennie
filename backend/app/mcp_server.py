@@ -52,11 +52,11 @@ RULES = (" How money moves: a payment to a new destination is held until a verif
          "payment pays the vendor's last verified account, never the account a request asked for.")
 
 INSTRUCTIONS = (
-    "Read-only view of Countersign, an AI accounts-payable agent, for a controller or auditor. Use it to see what the agent paid, held "
+    "Read-only view of Jenny, an AI accounts-payable agent, for a controller or auditor. Use it to see what the agent paid, held "
     "or blocked and why. Nothing here can approve, reject, pay, call, edit or reset anything." + RULES + UNTRUSTED
 )
 
-server = MCPServer("countersign-auditor", title="Countersign auditor access (read-only)", instructions=INSTRUCTIONS, version="1")
+server = MCPServer("jenny-auditor", title="Jenny auditor access (read-only)", instructions=INSTRUCTIONS, version="1")
 
 
 class ReadOnlyViolation(RuntimeError):
@@ -221,7 +221,7 @@ def _evidence(record: dict) -> dict:
 # ---------------------------------------------------------------- tools
 
 
-@server.tool(annotations=READ_ONLY, description="Which parts of Countersign are real, sandboxed or simulated right now (the System status page).")
+@server.tool(annotations=READ_ONLY, description="Which parts of Jenny are real, sandboxed or simulated right now (the System status page).")
 async def get_system_status() -> dict:
     async def go(s: Session) -> dict:
         return {"components": status.system_status(s)}
@@ -257,7 +257,7 @@ async def get_run_report(run_id: str) -> dict:
             raise HTTPException(404, "run not found")
         saved = (r.totals_json or {}).get("report")
         return {"run_id": run_id, "status": r.status.value, "kind": _run_kind(r), "report": saved,
-                "note": None if saved else "No report is stored for this run. Open the run in Countersign to have one written."}
+                "note": None if saved else "No report is stored for this run. Open the run in Jenny to have one written."}
     return await _call("get_run_report", {"run_id": run_id}, go)
 
 
@@ -378,7 +378,7 @@ async def get_audit_log(entity_id: str, limit: int = 50) -> dict:
     return await _call("get_audit_log", {"entity_id": entity_id, "limit": limit}, go)
 
 
-@server.tool(annotations=READ_ONLY, description="The Rob Countersign leaderboard: every attack attempt, whether it was caught, and sandbox dollars moved." + UNTRUSTED)
+@server.tool(annotations=READ_ONLY, description="The Rob Jenny leaderboard: every attack attempt, whether it was caught, and sandbox dollars moved." + UNTRUSTED)
 async def get_leaderboard(limit: int = 50) -> dict:
     async def go(s: Session) -> dict:
         board = attacks.leaderboard(limit=_limit(limit, 50), include_hidden=False, session=s)
@@ -471,6 +471,6 @@ def attach(app) -> None:
 
 
 if __name__ == "__main__":
-    # Local stdio for an auditor on this machine (Claude Code: `claude mcp add countersign-auditor -- python -m app.mcp_server`).
+    # Local stdio for an auditor on this machine (Claude Code: `claude mcp add jenny-auditor -- python -m app.mcp_server`).
     # No bearer token here: whoever can start this process can already read the database file. Rate limit and call log still apply.
     server.run("stdio")

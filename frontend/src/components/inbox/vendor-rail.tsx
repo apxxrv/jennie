@@ -18,7 +18,7 @@ export function VendorRail({ history, hasVendor }: { history: VendorHistory | un
   if (!hasVendor)
     return (
       <p className="px-4 py-5 text-sm text-ink-muted">
-        No vendor. This thread did not start in a vendor's thread, and Countersign never picks a vendor from a sender address.
+        No vendor. This thread did not start in a vendor's thread, and Jenny never picks a vendor from a sender address.
       </p>
     );
   if (!history) return <RailSkeleton />;

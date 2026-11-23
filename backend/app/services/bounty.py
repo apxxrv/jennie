@@ -1,7 +1,7 @@
 # Owner: Backend lead
 # Prize track: Armadin (Best Security Hack: the public bounty), Hyphenate (real attacks from real people)
 # Contract:
-#   POST /api/bounty/inbound          Postmark inbound-email webhook for the Rob Countersign bounty
+#   POST /api/bounty/inbound          Postmark inbound-email webhook for the Rob Jenny bounty
 #   POST /api/bounty/inbound/ses      the same inbox fed by Amazon SES through an SNS HTTPS subscription (same secret, same rules)
 #   GET  /api/bounty/queue            the moderation queue (default: pending), oldest first, with the full attack text for the moderator
 #   POST /api/bounty/{attack_id}/moderate   {action: approve | hide, moderator}

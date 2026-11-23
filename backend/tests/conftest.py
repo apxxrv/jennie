@@ -11,7 +11,7 @@ os.environ["RISK_CACHE_DIR"] = os.path.join(_tmp, "risk_cache")
 os.environ["REPORT_CACHE_DIR"] = os.path.join(_tmp, "report_cache")
 os.environ["CONTACTS_CACHE_DIR"] = os.path.join(_tmp, "contacts_cache")
 os.environ["LIVENESS_PATH"] = os.path.join(_tmp, "last_success.json")
-os.environ["FRONTEND_URL"] = "https://countersign.example"
+os.environ["FRONTEND_URL"] = "https://jenny.example"
 os.environ["PAGES_BASE_URL"] = "https://aayushswami123.github.io/Countersign"  # the published base URL; the path is case-sensitive
 # Tests never use the live .env: environment variables beat the .env file, so these pin every mock on and the key off.
 for _flag in ("NESSIE", "CRS", "APIFY", "TWILIO", "CARTESIA", "CLAUDE"):

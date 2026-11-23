@@ -592,7 +592,7 @@ def test_token_never_reaches_logs_events_or_the_database(real_hooks, caplog):
     client.post(f"/api/voice/twiml/cal_t?t={tok}")
     client.post(f"/api/voice/twiml/cal_t?t=wrong{tok}")
     client.post(f"/api/voice/gather/cal_t?t={tok}", data={"SpeechResult": "no"})
-    ours = [r.getMessage() for r in caplog.records if r.name.startswith(("countersign", "uvicorn"))]  # not the test client's own httpx line
+    ours = [r.getMessage() for r in caplog.records if r.name.startswith(("jenny", "uvicorn"))]  # not the test client's own httpx line
     assert ours and not any(tok in m for m in ours)
     with Session(eng) as s:
         blob = " ".join(str(e.payload) for e in s.exec(select(Event))) + " ".join(str(a.detail_json) for a in s.exec(select(AuditLog)))
@@ -1078,7 +1078,7 @@ def test_logs_for_the_softphone_carry_no_token(web, caplog):
     with caplog.at_level(logging.INFO):
         _answer(client, res, "Yes we did", tok)
         client.post(f"/api/voice/web-answer/{res.call_id}?t=nope", json={})
-    ours = "\n".join(r.getMessage() for r in caplog.records if r.name.startswith("countersign"))  # the test client logs its own URLs
+    ours = "\n".join(r.getMessage() for r in caplog.records if r.name.startswith("jenny"))  # the test client logs its own URLs
     assert tok not in ours and KEY not in ours and "finished" in ours
 
 

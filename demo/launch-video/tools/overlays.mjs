@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const [, , TL, OUT] = process.argv;
-const FONTS = "/Users/apple/Desktop/all projects/Countersign/frontend/node_modules/@fontsource";
+const FONTS = "/Users/apple/Desktop/all projects/Jenny/frontend/node_modules/@fontsource";
 const tl = JSON.parse(fs.readFileSync(TL, "utf8"));
 fs.mkdirSync(OUT, { recursive: true });
 const esc = (s) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;");
@@ -35,7 +35,7 @@ html,body{margin:0;width:1920px;height:1080px;background:transparent;font-family
 const mark = `<svg viewBox="0 0 24 24" width="120" height="120"><rect x="1" y="1" width="22" height="22" rx="5.5" fill="#1F3A5F"/><path d="M5.5 15.2c1.4-1.6 2.3-.2 3.2.9 1.6-3.1 3.6-6.3 6.3-8.6 1.1-.9 2.6-.6 2.4.7-.2 1.4-2 2.4-3.4 2.1" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5.5 19h13" stroke="#fff" stroke-opacity=".45" stroke-width="1.4" stroke-linecap="round"/></svg>`;
 const CARDS = {
   stat: `<div class="card"><div class="big">74%</div><div class="mid">of organizations were hit by business email compromise in 2025.</div><div class="src">Source: 2026 AFP Payments Fraud and Control Survey</div></div>`,
-  end: `<div class="card"><div class="row">${mark}<div class="name">Countersign</div></div><div class="line">AI accounts payable that never pays a scammer.</div><div class="small mono">github.com/aayushswami123/Countersign</div><div class="small">Built at Cal Hacks 13.0. Narration and call voice by Cartesia.</div></div>`,
+  end: `<div class="card"><div class="row">${mark}<div class="name">Jenny</div></div><div class="line">AI accounts payable that never pays a scammer.</div><div class="small mono">github.com/aayushswami123/Countersign</div><div class="small">Built at Cal Hacks 13.0. Narration and call voice by Cartesia.</div></div>`,
 };
 
 const browser = await chromium.launch({ channel: "chrome", headless: true });

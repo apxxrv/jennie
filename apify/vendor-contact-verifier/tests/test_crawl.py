@@ -179,13 +179,13 @@ async def test_a_site_at_a_domain_root_is_unchanged_the_prefix_is_slash(host):
 def test_scope_decides_on_the_path_the_server_will_serve():
     from src.crawl import Scope, normal_path
 
-    scope = Scope("https://h.test/Countersign/summit-concrete/", "/Countersign/summit-concrete/")
-    inside = ["https://h.test/Countersign/summit-concrete/", "https://h.test/Countersign/summit-concrete", "https://h.test/Countersign/summit-concrete/contact.html",
-              "https://h.test/Countersign/summit-concrete/a/../contact.html", "https://H.TEST/Countersign/summit-concrete//x"]
-    outside = ["https://h.test/Countersign/summit-concrete-co/", "https://h.test/Countersign/", "https://h.test/", "https://h.test/countersign/summit-concrete/",
-               "https://h.test/Countersign/summit-concrete/../northside-rentals/", "https://h.test/Countersign/summit-concrete/%2e%2e/northside-rentals/",
-               "https://h.test/Countersign/summit-concrete/..%2fnorthside-rentals/", "https://h.test/Countersign/summit-concrete\\..\\northside-rentals/",
-               "https://other.test/Countersign/summit-concrete/", "ftp://h.test/Countersign/summit-concrete/"]
+    scope = Scope("https://h.test/Jenny/summit-concrete/", "/Jenny/summit-concrete/")
+    inside = ["https://h.test/Jenny/summit-concrete/", "https://h.test/Jenny/summit-concrete", "https://h.test/Jenny/summit-concrete/contact.html",
+              "https://h.test/Jenny/summit-concrete/a/../contact.html", "https://H.TEST/Jenny/summit-concrete//x"]
+    outside = ["https://h.test/Jenny/summit-concrete-co/", "https://h.test/Jenny/", "https://h.test/", "https://h.test/jenny/summit-concrete/",
+               "https://h.test/Jenny/summit-concrete/../northside-rentals/", "https://h.test/Jenny/summit-concrete/%2e%2e/northside-rentals/",
+               "https://h.test/Jenny/summit-concrete/..%2fnorthside-rentals/", "https://h.test/Jenny/summit-concrete\\..\\northside-rentals/",
+               "https://other.test/Jenny/summit-concrete/", "ftp://h.test/Jenny/summit-concrete/"]
     assert all(scope.contains(u) for u in inside), [u for u in inside if not scope.contains(u)]
     assert not any(scope.contains(u) for u in outside), [u for u in outside if scope.contains(u)]
     assert normal_path("/a//b/./c/../d/") == "/a/b/d/" and normal_path("/..") == "/" and normal_path("") == "/"

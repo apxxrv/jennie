@@ -535,7 +535,7 @@ def seed_database(session: Session, *, keep_attacks: bool = False, write_pdfs: b
     current.append((PLANTED["ceo_pressure"]["invoice"], "", n_v, date(2026, 10, 22), n_amt, n_number, n_acct, None))
 
     # ---- audit marker
-    rows.append(AuditLog(id="aud_seed", at=ANCHOR, entity="seed", entity_id="countersign", actor=AuditActor.system, action="seeded",
+    rows.append(AuditLog(id="aud_seed", at=ANCHOR, entity="seed", entity_id="jenny", actor=AuditActor.system, action="seeded",
                          detail_json={"seed": SEED, "vendors": len(VENDORS), "history_invoices": len(drafts), "open_invoices": len(current)}))
 
     # ---- PDFs: this week's 40, historical samples (for extraction tests and layout fingerprints), poisoned variants

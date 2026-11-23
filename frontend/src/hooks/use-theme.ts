@@ -20,7 +20,7 @@ export function useTheme(): Theme {
 export function setTheme(theme: Theme) {
   document.documentElement.dataset.theme = theme;
   try {
-    localStorage.setItem("countersign-theme", theme);
+    localStorage.setItem("jenny-theme", theme);
   } catch {
     // Storage can be unavailable; the theme still applies for this visit.
   }

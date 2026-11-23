@@ -6,7 +6,7 @@ import { useSyncExternalStore } from "react";
 
 export type DataMode = "live" | "mock" | "replay";
 
-const STORAGE_KEY = "countersign-data-mode";
+const STORAGE_KEY = "jenny-data-mode";
 /** Built with VITE_USE_MOCKS=true: offline on purpose, with no live server to go back to. */
 export const BUILT_MOCK = import.meta.env.VITE_USE_MOCKS === "true";
 
@@ -22,7 +22,7 @@ function readStored(): DataMode | null {
 
 let mode: DataMode = readStored() ?? (BUILT_MOCK ? "mock" : "live");
 const listeners = new Set<() => void>();
-const channel = typeof BroadcastChannel === "undefined" ? null : new BroadcastChannel("countersign-data-mode");
+const channel = typeof BroadcastChannel === "undefined" ? null : new BroadcastChannel("jenny-data-mode");
 
 function apply(next: DataMode) {
   if (next === mode) return;

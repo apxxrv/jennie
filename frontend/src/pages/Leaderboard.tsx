@@ -17,7 +17,7 @@ import { useServiceModes } from "@/lib/services";
 import type { AttackLoggedEvent, LeaderboardRow } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-// Rob Countersign: the second screen across the table. Light like every other page; dark with ?tv=1 (a TV across the room). Every attempt from the attack console, judges and
+// Rob Jenny: the second screen across the table. Light like every other page; dark with ?tv=1 (a TV across the room). Every attempt from the attack console, judges and
 // the bounty inbox, live; a miss is never hidden, it becomes a new test case. ?tv=1 is for the TV: 1.5x type, a
 // periodic refresh as a safety net under the live stream, and the cursor out of the way.
 
@@ -80,7 +80,7 @@ export function Leaderboard() {
       <header className="flex flex-wrap items-start justify-between gap-x-10 gap-y-6 border-b border-rule px-8 pt-8 pb-7">
         <div className="min-w-0">
           <h1 className="flex items-center gap-3 text-xl font-semibold">
-            Rob Countersign
+            Rob Jenny
             {mode === "replay" && <span className="rounded-sm border border-ink-muted px-2 py-0.5 text-sm font-medium">{replayLabel()}</span>}
           </h1>
           <p className="mt-1 text-md text-ink-muted">
@@ -226,7 +226,7 @@ function BountyCorner({ email }: { email: string }) {
     <div className="flex items-center gap-5 rounded-lg border border-rule bg-surface p-4">
       {/* Printed-code colors, not theme tokens: scanners need dark modules on a light quiet zone, whatever the theme. */}
       <QRCodeSVG
-        value={`mailto:${email}?subject=${encodeURIComponent("Rob Countersign")}`}
+        value={`mailto:${email}?subject=${encodeURIComponent("Rob Jenny")}`}
         size={128}
         bgColor="#ffffff"
         fgColor="#10151c"

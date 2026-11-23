@@ -1,4 +1,4 @@
-# Countersign pre-judging audit
+# Jenny pre-judging audit
 
 Date: Oct 24, 2026 (evening). Branch audited: `main` at `6027b13` (frontend-polish merged). No application code was changed during the audit itself; the only file added was this report.
 
@@ -66,9 +66,9 @@ Legend: Built = code exists. E2E = works end to end. Live = tested with real ser
 | Feature | Built | E2E | Live or mock | Proof |
 |---|---|---|---|---|
 | Attack console, 3 cards plus freestyle | Yes | Yes | Live | Judge flow: 2 actions to launch, payment page in 0.2 s, blocked in 1.1 to 1.4 s with simulated call |
-| Rob Countersign bounty (inbound, QR, rate limit) | Yes | Not live | Tests only | Inbox returns 503 today (no secret set); no inbound address in the frontend env; `test_bounty.py` covers it |
+| Rob Jenny bounty (inbound, QR, rate limit) | Yes | Not live | Tests only | Inbox returns 503 today (no secret set); no inbound address in the frontend env; `test_bounty.py` covers it |
 | Leaderboard on a second screen | Yes | Yes | Live | Updates live; `Replay of a real run` or `Replay of a recording` label in replay |
-| Red-team harness, 200 attacks | Yes | Yes | Past live run | `docs/redteam.md`: Countersign caught 186 of 200, $0 lost; baseline $471K lost. Results in `demo/redteam-results.*` |
+| Red-team harness, 200 attacks | Yes | Yes | Past live run | `docs/redteam.md`: Jenny caught 186 of 200, $0 lost; baseline $471K lost. Results in `demo/redteam-results.*` |
 | Real-vs-simulated status panel | Yes | Yes | Live | Shows real, sandboxed, simulated and degraded (Apify showed "degraded" when its token was wrong) |
 | Apify independent contact lookup | Yes | Yes | Live | See Part 3 |
 | CRS vendor identity check | Yes | Yes | Live | See Part 3 |

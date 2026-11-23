@@ -60,7 +60,7 @@ export function CallStrip({ call }: { call: CallView }) {
         {call.phase !== "queued" && <LimitLine elapsed={elapsed} className="mt-2" />}
         {last && (
           <p className="mt-2 line-clamp-2 text-sm">
-            <span className="text-ink-muted">{last.speaker === "vendor" ? "Vendor" : "Countersign"}: </span>
+            <span className="text-ink-muted">{last.speaker === "vendor" ? "Vendor" : "Jenny"}: </span>
             {last.text}
           </p>
         )}

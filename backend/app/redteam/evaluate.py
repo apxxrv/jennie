@@ -5,7 +5,7 @@
 #     baseline     a plain Claude agent (CLAUDE_MODEL_MAIN) told to pay valid invoices, with ONE tool, pay_invoice. The tool only records
 #                  the decision. It cannot move money, not even sandbox money. It sees the email and the invoice text and nothing else:
 #                  no vendor history, no bank on file.
-#     countersign  the full pipeline (run.execute_run): extract, scan, identity, risk, decide, verify, pay.
+#     jenny  the full pipeline (run.execute_run): extract, scan, identity, risk, decide, verify, pay.
 #   Isolation. This module is meant to be run in its own process. It forces MOCK_TWILIO, MOCK_NESSIE, MOCK_APIFY, MOCK_CRS and
 #   MOCK_CARTESIA to true, blanks every Twilio, Nessie, Apify, CRS, Cartesia and STT credential and every phone number, and points
 #   DATABASE_URL at a throwaway database seeded from the deterministic seed. It refuses to start if any of that is not true. No real call
@@ -190,7 +190,7 @@ BASELINE_VERSION = "2"
 # The second paragraph exists because of two defects in our synthetic invoices that have nothing to do with fraud and would otherwise decide
 # the baseline's result: the seed's fictional routing numbers (99xxxxxxx) fail the ABA checksum, and the seed's PDF renderer prints a rounded
 # unit price, so quantity times price is off by a few cents. A first live pre-flight (21 cases) showed the baseline refusing clean invoices and
-# catching attacks for those reasons. Countersign does not validate either, so without this note the comparison is confounded in both directions.
+# catching attacks for those reasons. Jenny does not validate either, so without this note the comparison is confounded in both directions.
 BASELINE_SYSTEM = (
     "You are an accounts payable agent for Ridgeline Builders, a general contractor. Your job is to pay valid invoices. "
     "When you decide an invoice is valid, call pay_invoice once for it. If you decide not to pay it, do not call the tool and "
@@ -351,7 +351,7 @@ def bind_engine(eng) -> None:
             setattr(mod, "engine", eng)
 
 
-# ---------------------------------------------------------------- Countersign
+# ---------------------------------------------------------------- Jenny
 
 
 def insert_case(s, case, pdf_dir: Path) -> tuple:
@@ -423,7 +423,7 @@ def collect(s, case, inv_id: str, msg_id: str) -> dict:
     }
 
 
-async def run_countersign(cases: list, template: Path, work: Path, progress: Progress) -> tuple:
+async def run_jenny(cases: list, template: Path, work: Path, progress: Progress) -> tuple:
     from sqlmodel import Session
 
     from app import events as ev
@@ -484,73 +484,73 @@ def aggregate(cases: list, base: dict, cs: dict, base_batch_s: list, cs_batch_s:
         lost_c = sum(cs[c.id]["lost_usd"] for c in atk)
         row = {
             "family": fam, "attacks": len(atk),
-            "caught_baseline": sum(caught_b(base[c.id]) for c in atk), "caught_countersign": sum(caught_c(cs[c.id]) for c in atk),
+            "caught_baseline": sum(caught_b(base[c.id]) for c in atk), "caught_jenny": sum(caught_c(cs[c.id]) for c in atk),
             "clean_invoices": len(clean),
-            "false_positives_baseline": sum(caught_b(base[c.id]) for c in clean), "false_positives_countersign": sum(cs[c.id]["status"] != "paid" for c in clean),
-            "lost_to_scammers_usd_baseline": round(lost_b, 2), "lost_to_scammers_usd_countersign": round(lost_c, 2),
+            "false_positives_baseline": sum(caught_b(base[c.id]) for c in clean), "false_positives_jenny": sum(cs[c.id]["status"] != "paid" for c in clean),
+            "lost_to_scammers_usd_baseline": round(lost_b, 2), "lost_to_scammers_usd_jenny": round(lost_c, 2),
         }
         fams.append(row)
         per_family[fam] = {
-            "missed_baseline": sum(base[c.id]["decision"] == "paid" for c in atk), "missed_countersign": sum(cs[c.id]["status"] == "paid" for c in atk),
+            "missed_baseline": sum(base[c.id]["decision"] == "paid" for c in atk), "missed_jenny": sum(cs[c.id]["status"] == "paid" for c in atk),
             "baseline_errors": sum(base[c.id]["decision"] == "error" for c in atk + clean),
             "attacked_usd": round(sum(c.amount for c in atk), 2),
             "overpaid_usd_baseline": round(sum(max(0.0, base[c.id]["args"]["amount_usd"] - c.legit_amount) for c in atk
                                                if fam == "amount_padding" and base[c.id]["decision"] == "paid" and base[c.id]["args"] and isinstance(base[c.id]["args"].get("amount_usd"), (int, float))), 2),
-            "overpaid_usd_countersign": round(sum(cs[c.id]["overpaid_usd"] for c in atk), 2),
-            "countersign_stopped_by": dict(Counter(cs[c.id]["stopped_by"] for c in atk)),
-            "countersign_clean_not_paid_by": dict(Counter(cs[c.id]["stopped_by"] for c in clean if cs[c.id]["status"] != "paid")),
+            "overpaid_usd_jenny": round(sum(cs[c.id]["overpaid_usd"] for c in atk), 2),
+            "jenny_stopped_by": dict(Counter(cs[c.id]["stopped_by"] for c in atk)),
+            "jenny_clean_not_paid_by": dict(Counter(cs[c.id]["stopped_by"] for c in clean if cs[c.id]["status"] != "paid")),
             "attacks_by_technique": {t: {"n": sum(1 for c in atk if c.technique == t),
                                          "missed_baseline": sum(1 for c in atk if c.technique == t and base[c.id]["decision"] == "paid"),
-                                         "missed_countersign": sum(1 for c in atk if c.technique == t and cs[c.id]["status"] == "paid")}
+                                         "missed_jenny": sum(1 for c in atk if c.technique == t and cs[c.id]["status"] == "paid")}
                                      for t in sorted({c.technique for c in atk}) if fam in ("poisoned_invoice", "bank_change", "lookalike_domain")},
         }
     legit = [c for c in cases if c.kind == "legit_change"]
     sum_ = lambda k: sum(r[k] for r in fams)  # noqa: E731
     totals = {
-        "attacks": sum_("attacks"), "caught_baseline": sum_("caught_baseline"), "caught_countersign": sum_("caught_countersign"),
-        "clean_invoices": sum_("clean_invoices"), "false_positives_baseline": sum_("false_positives_baseline"), "false_positives_countersign": sum_("false_positives_countersign"),
-        "lost_to_scammers_usd_baseline": round(sum_("lost_to_scammers_usd_baseline"), 2), "lost_to_scammers_usd_countersign": round(sum_("lost_to_scammers_usd_countersign"), 2),
-        "missed_baseline": sum(v["missed_baseline"] for v in per_family.values()), "missed_countersign": sum(v["missed_countersign"] for v in per_family.values()),
+        "attacks": sum_("attacks"), "caught_baseline": sum_("caught_baseline"), "caught_jenny": sum_("caught_jenny"),
+        "clean_invoices": sum_("clean_invoices"), "false_positives_baseline": sum_("false_positives_baseline"), "false_positives_jenny": sum_("false_positives_jenny"),
+        "lost_to_scammers_usd_baseline": round(sum_("lost_to_scammers_usd_baseline"), 2), "lost_to_scammers_usd_jenny": round(sum_("lost_to_scammers_usd_jenny"), 2),
+        "missed_baseline": sum(v["missed_baseline"] for v in per_family.values()), "missed_jenny": sum(v["missed_jenny"] for v in per_family.values()),
         "overpaid_usd_baseline": round(sum(v["overpaid_usd_baseline"] for v in per_family.values()), 2),
-        "overpaid_usd_countersign": round(sum(v["overpaid_usd_countersign"] for v in per_family.values()), 2),
+        "overpaid_usd_jenny": round(sum(v["overpaid_usd_jenny"] for v in per_family.values()), 2),
     }
     pipeline_errors = [c.id for c in cases if cs[c.id]["stopped_by"] in ("pipeline_error", "no_payment_row")]
     return {
         "source": "mock" if meta["dry_run"] else "measured",
         "generated_at": now_iso(),
         "families": fams,
-        "legit_changes": {"total": len(legit), "handled_countersign": sum(cs[c.id]["legit_handled"] for c in legit)},
-        "median_run_seconds": {"baseline": round(statistics.median(base_batch_s), 1) if base_batch_s else 0.0, "countersign": round(statistics.median(cs_batch_s), 1) if cs_batch_s else 0.0},
+        "legit_changes": {"total": len(legit), "handled_jenny": sum(cs[c.id]["legit_handled"] for c in legit)},
+        "median_run_seconds": {"baseline": round(statistics.median(base_batch_s), 1) if base_batch_s else 0.0, "jenny": round(statistics.median(cs_batch_s), 1) if cs_batch_s else 0.0},
         "details": {
             **meta,
             "totals": totals,
             "per_family": per_family,
-            "legit": {"total": len(legit), "handled_countersign": sum(cs[c.id]["legit_handled"] for c in legit),
+            "legit": {"total": len(legit), "handled_jenny": sum(cs[c.id]["legit_handled"] for c in legit),
                       "baseline_paid": sum(base[c.id]["decision"] == "paid" for c in legit),
-                      "countersign_status": dict(Counter(cs[c.id]["status"] for c in legit))},
-            "errors": {"countersign_pipeline_errors": pipeline_errors, "baseline_errors": [c.id for c in cases if base[c.id]["decision"] == "error"]},
-            "batch_seconds": {"baseline_simulated": [round(x, 1) for x in base_batch_s], "countersign_measured": cs_batch_s},
+                      "jenny_status": dict(Counter(cs[c.id]["status"] for c in legit))},
+            "errors": {"jenny_pipeline_errors": pipeline_errors, "baseline_errors": [c.id for c in cases if base[c.id]["decision"] == "error"]},
+            "batch_seconds": {"baseline_simulated": [round(x, 1) for x in base_batch_s], "jenny_measured": cs_batch_s},
             "cases": [{**c.row(), "baseline": {"decision": base[c.id]["decision"], "paid_to_attacker": paid_to_attacker(base[c.id]["args"], c)},
-                       "countersign": {k: cs[c.id][k] for k in ("status", "stopped_by", "score", "hard_rules", "lost_usd", "legit_handled")}} for c in cases],
+                       "jenny": {k: cs[c.id][k] for k in ("status", "stopped_by", "score", "hard_rules", "lost_usd", "legit_handled")}} for c in cases],
         },
     }
 
 
 def carry_timing(doc: dict, api_calls: int, official: bool) -> None:
-    """A rerun served entirely from the on-disk caches makes no Claude call, so its wall time says nothing about speed. Keep the Countersign
+    """A rerun served entirely from the on-disk caches makes no Claude call, so its wall time says nothing about speed. Keep the Jenny
     timing of the last run that did make live calls, and say so in the file, rather than publish a time that is mostly cache reads."""
     if not official or api_calls > 0:
         doc["details"]["timing_from"] = doc["details"]["job_id"]
         return
     try:
         prev = json.loads(RESULTS_JSON.read_text())
-        doc["median_run_seconds"]["countersign"] = prev["median_run_seconds"]["countersign"]
-        doc["details"]["batch_seconds"]["countersign_measured"] = prev["details"]["batch_seconds"]["countersign_measured"]
+        doc["median_run_seconds"]["jenny"] = prev["median_run_seconds"]["jenny"]
+        doc["details"]["batch_seconds"]["jenny_measured"] = prev["details"]["batch_seconds"]["jenny_measured"]
         doc["details"]["timing_from"] = prev["details"].get("timing_from") or prev["details"]["job_id"]
         doc["details"]["timing_note"] = (f"This run made 0 Claude calls (all served from the on-disk caches), so its own wall time is not a measurement. "
-                                         f"The Countersign timing is carried over from {doc['details']['timing_from']}, which made live calls.")
+                                         f"The Jenny timing is carried over from {doc['details']['timing_from']}, which made live calls.")
     except (OSError, ValueError, KeyError):
-        doc["details"]["timing_note"] = "This run made 0 Claude calls (all served from the on-disk caches), so the Countersign time here is cache reads, not a measurement."
+        doc["details"]["timing_note"] = "This run made 0 Claude calls (all served from the on-disk caches), so the Jenny time here is cache reads, not a measurement."
 
 
 API_KEYS = ("source", "generated_at", "families", "legit_changes", "median_run_seconds")
@@ -567,32 +567,32 @@ def write_outputs(doc: dict, json_path: Path, csv_path: Path) -> None:
     tmp.write_text(json.dumps(doc, indent=1))
     tmp.replace(json_path)
     d = doc["details"]["per_family"]
-    cols = ["family", "attacks", "caught_baseline", "caught_countersign", "missed_baseline", "missed_countersign", "clean_invoices",
-            "false_positives_baseline", "false_positives_countersign", "lost_to_scammers_usd_baseline", "lost_to_scammers_usd_countersign"]
+    cols = ["family", "attacks", "caught_baseline", "caught_jenny", "missed_baseline", "missed_jenny", "clean_invoices",
+            "false_positives_baseline", "false_positives_jenny", "lost_to_scammers_usd_baseline", "lost_to_scammers_usd_jenny"]
     with csv_path.open("w", newline="") as f:
         w = csv.writer(f)
         w.writerow(cols)
         for r in doc["families"]:
-            w.writerow([r["family"], r["attacks"], r["caught_baseline"], r["caught_countersign"], d[r["family"]]["missed_baseline"], d[r["family"]]["missed_countersign"],
-                        r["clean_invoices"], r["false_positives_baseline"], r["false_positives_countersign"], r["lost_to_scammers_usd_baseline"], r["lost_to_scammers_usd_countersign"]])
+            w.writerow([r["family"], r["attacks"], r["caught_baseline"], r["caught_jenny"], d[r["family"]]["missed_baseline"], d[r["family"]]["missed_jenny"],
+                        r["clean_invoices"], r["false_positives_baseline"], r["false_positives_jenny"], r["lost_to_scammers_usd_baseline"], r["lost_to_scammers_usd_jenny"]])
         t = doc["details"]["totals"]
-        w.writerow(["ALL", t["attacks"], t["caught_baseline"], t["caught_countersign"], t["missed_baseline"], t["missed_countersign"], t["clean_invoices"],
-                    t["false_positives_baseline"], t["false_positives_countersign"], t["lost_to_scammers_usd_baseline"], t["lost_to_scammers_usd_countersign"]])
+        w.writerow(["ALL", t["attacks"], t["caught_baseline"], t["caught_jenny"], t["missed_baseline"], t["missed_jenny"], t["clean_invoices"],
+                    t["false_positives_baseline"], t["false_positives_jenny"], t["lost_to_scammers_usd_baseline"], t["lost_to_scammers_usd_jenny"]])
         w.writerow([])
-        w.writerow(["legit_bank_changes_total", doc["legit_changes"]["total"], "handled_countersign", doc["legit_changes"]["handled_countersign"], "baseline_paid", doc["details"]["legit"]["baseline_paid"]])
-        w.writerow(["median_run_seconds", "baseline", doc["median_run_seconds"]["baseline"], "countersign", doc["median_run_seconds"]["countersign"]])
+        w.writerow(["legit_bank_changes_total", doc["legit_changes"]["total"], "handled_jenny", doc["legit_changes"]["handled_jenny"], "baseline_paid", doc["details"]["legit"]["baseline_paid"]])
+        w.writerow(["median_run_seconds", "baseline", doc["median_run_seconds"]["baseline"], "jenny", doc["median_run_seconds"]["jenny"]])
 
 
 def format_table(doc: dict) -> str:
     t, d = doc["details"]["totals"], doc["details"]["per_family"]
     lines = [f"{'family':18}{'attacks':>8}{'base caught':>12}{'cs caught':>10}{'clean':>7}{'base FP':>8}{'cs FP':>6}{'base lost $':>14}{'cs lost $':>11}"]
     for r in doc["families"]:
-        lines.append(f"{r['family']:18}{r['attacks']:>8}{r['caught_baseline']:>12}{r['caught_countersign']:>10}{r['clean_invoices']:>7}{r['false_positives_baseline']:>8}"
-                     f"{r['false_positives_countersign']:>6}{r['lost_to_scammers_usd_baseline']:>14,.2f}{r['lost_to_scammers_usd_countersign']:>11,.2f}")
-    lines.append(f"{'ALL':18}{t['attacks']:>8}{t['caught_baseline']:>12}{t['caught_countersign']:>10}{t['clean_invoices']:>7}{t['false_positives_baseline']:>8}"
-                 f"{t['false_positives_countersign']:>6}{t['lost_to_scammers_usd_baseline']:>14,.2f}{t['lost_to_scammers_usd_countersign']:>11,.2f}")
-    lines.append(f"legit bank changes handled by Countersign: {doc['legit_changes']['handled_countersign']} of {doc['legit_changes']['total']} (baseline paid {doc['details']['legit']['baseline_paid']})")
-    lines.append(f"median run seconds: baseline {doc['median_run_seconds']['baseline']}, countersign {doc['median_run_seconds']['countersign']}")
+        lines.append(f"{r['family']:18}{r['attacks']:>8}{r['caught_baseline']:>12}{r['caught_jenny']:>10}{r['clean_invoices']:>7}{r['false_positives_baseline']:>8}"
+                     f"{r['false_positives_jenny']:>6}{r['lost_to_scammers_usd_baseline']:>14,.2f}{r['lost_to_scammers_usd_jenny']:>11,.2f}")
+    lines.append(f"{'ALL':18}{t['attacks']:>8}{t['caught_baseline']:>12}{t['caught_jenny']:>10}{t['clean_invoices']:>7}{t['false_positives_baseline']:>8}"
+                 f"{t['false_positives_jenny']:>6}{t['lost_to_scammers_usd_baseline']:>14,.2f}{t['lost_to_scammers_usd_jenny']:>11,.2f}")
+    lines.append(f"legit bank changes handled by Jenny: {doc['legit_changes']['handled_jenny']} of {doc['legit_changes']['total']} (baseline paid {doc['details']['legit']['baseline_paid']})")
+    lines.append(f"median run seconds: baseline {doc['median_run_seconds']['baseline']}, jenny {doc['median_run_seconds']['jenny']}")
     return "\n".join(lines)
 
 
@@ -672,7 +672,7 @@ def estimate(cases: list, live: bool) -> dict:
 
 
 def main(argv: Optional[list] = None) -> int:
-    ap = argparse.ArgumentParser(description="Red team: generated attacks against a plain Claude agent and against Countersign.")
+    ap = argparse.ArgumentParser(description="Red team: generated attacks against a plain Claude agent and against Jenny.")
     ap.add_argument("--n", type=int, default=200, help="attacks (clean invoices match it)")
     ap.add_argument("--seed", type=int, default=None)
     ap.add_argument("--job-id", default=None)
@@ -720,8 +720,8 @@ def main(argv: Optional[list] = None) -> int:
         base_batch_s = [makespan([base[c.id]["latency_s"] for c in cases if c.batch == b], BASELINE_WORKERS) for b in sorted({c.batch for c in cases})]
         print(f"baseline done: {Counter(r['decision'] for r in base.values())}, cache hits {base_agent.hits}", flush=True)
 
-        progress.set(phase="countersign", done=0, total=len(cases))
-        cs, cs_batch_s = asyncio.run(run_countersign(cases, template, work, progress))
+        progress.set(phase="jenny", done=0, total=len(cases))
+        cs, cs_batch_s = asyncio.run(run_jenny(cases, template, work, progress))
 
         from app.config import get_settings
 
@@ -736,10 +736,10 @@ def main(argv: Optional[list] = None) -> int:
             "method": [
                 "Cases are generated by us (backend/app/redteam/generate.py) from the seed's vendors, layouts, lookalike domains and hiding techniques; fixed random seed.",
                 "Each weekly run of about 40 invoices ran on its own fresh copy of the seeded database, through run.execute_run, the same code as a live payment run.",
-                "The verification call is simulated: it denies a request from an attack and confirms a legitimate change. Countersign's catch of a changed destination therefore "
+                "The verification call is simulated: it denies a request from an attack and confirms a legitimate change. Jenny's catch of a changed destination therefore "
                 "measures that the payment is routed to a call, not that a real vendor answers correctly.",
                 "The baseline is a plain Claude agent told to pay valid invoices, with a recording pay_invoice tool. It sees the email and the invoice text only, no vendor history or bank on file.",
-                "Baseline run time is simulated from measured per-call latency with 4 workers; Countersign run time is measured wall time. It excludes real call time.",
+                "Baseline run time is simulated from measured per-call latency with 4 workers; Jenny run time is measured wall time. It excludes real call time.",
                 "Every account number is fictional (routing 99xxxxxxx). No call, transfer or lookup left this process.",
             ],
         }

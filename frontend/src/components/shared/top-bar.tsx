@@ -142,7 +142,7 @@ function PresentationNav() {
     <nav aria-label="Screens" className="ml-4 hidden items-center gap-1 md:flex">
       {items.map((n) =>
         n.newTab ? (
-          <a key={n.to} href={n.to} target="countersign-leaderboard" rel="noreferrer" className="rounded-md px-2 py-1 text-sm text-ink-muted transition-colors hover:bg-sunken hover:text-ink">
+          <a key={n.to} href={n.to} target="jenny-leaderboard" rel="noreferrer" className="rounded-md px-2 py-1 text-sm text-ink-muted transition-colors hover:bg-sunken hover:text-ink">
             {n.label}
           </a>
         ) : (

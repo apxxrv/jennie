@@ -45,22 +45,22 @@ Generate one with `python3 -c "import secrets; print(secrets.token_urlsafe(32))"
 ### Over HTTP (the running backend)
 
 ```sh
-claude mcp add --transport http countersign-auditor http://localhost:8000/mcp \
+claude mcp add --transport http jenny-auditor http://localhost:8000/mcp \
   --header "Authorization: Bearer $MCP_READ_TOKEN"
 ```
 
-For a backend behind ngrok, use `https://<your-ngrok-host>/mcp` and make sure `PUBLIC_BASE_URL` is that same address. Check it with `claude mcp list` (it should show `countersign-auditor` as connected), then ask in Claude Code, for example:
+For a backend behind ngrok, use `https://<your-ngrok-host>/mcp` and make sure `PUBLIC_BASE_URL` is that same address. Check it with `claude mcp list` (it should show `jenny-auditor` as connected), then ask in Claude Code, for example:
 
 - "What was held this week and why?"
 - "Did any money go to an unverified account?"
 - "Show me the audit log for pay_atk_bank_change."
 
-`claude mcp add` stores the server in your local Claude Code settings for this project (`--scope local`, the default), not in the repo, so the token is not committed. Remove it with `claude mcp remove countersign-auditor`.
+`claude mcp add` stores the server in your local Claude Code settings for this project (`--scope local`, the default), not in the repo, so the token is not committed. Remove it with `claude mcp remove jenny-auditor`.
 
 ### Over stdio (on the machine with the database)
 
 ```sh
-claude mcp add countersign-auditor -- /path/to/Countersign/backend/.venv/bin/python -m app.mcp_server
+claude mcp add jenny-auditor -- /path/to/Jenny/backend/.venv/bin/python -m app.mcp_server
 ```
 
 Run it from `backend/` (or set `DATABASE_URL`). stdio needs no token: whoever can start the process can already read the database file. The rate limit and the call log still apply.

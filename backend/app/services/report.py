@@ -52,7 +52,7 @@ from app.models import (
 )
 from app.services import ask
 
-log = logging.getLogger("countersign.report")
+log = logging.getLogger("jenny.report")
 router = APIRouter()
 
 DEADLINE_SECONDS = 8.0

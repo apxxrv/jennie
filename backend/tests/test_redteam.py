@@ -14,8 +14,8 @@ from app.services import injection, risk
 from app.services.injection import ScanItem
 
 FRONTEND_FAMILY_KEYS = {
-    "family", "attacks", "caught_baseline", "caught_countersign", "clean_invoices", "false_positives_baseline", "false_positives_countersign",
-    "lost_to_scammers_usd_baseline", "lost_to_scammers_usd_countersign",
+    "family", "attacks", "caught_baseline", "caught_jenny", "clean_invoices", "false_positives_baseline", "false_positives_jenny",
+    "lost_to_scammers_usd_baseline", "lost_to_scammers_usd_jenny",
 }
 
 
@@ -216,36 +216,36 @@ def test_aggregate_counts_and_dollars():
     cs["c5"] = {**cs["c1"], "status": "paid", "stopped_by": "paid", "legit_handled": True}
     doc = evaluate.aggregate(cases, base, cs, [12.0, 14.0], [3.0, 5.0], {"dry_run": False})
     row = next(r for r in doc["families"] if r["family"] == "bank_change")
-    assert (row["attacks"], row["caught_baseline"], row["caught_countersign"]) == (2, 1, 2)
-    assert (row["clean_invoices"], row["false_positives_baseline"], row["false_positives_countersign"]) == (2, 1, 1)
-    assert row["lost_to_scammers_usd_baseline"] == 500.0 and row["lost_to_scammers_usd_countersign"] == 0.0
-    assert doc["legit_changes"] == {"total": 1, "handled_countersign": 1}
-    assert doc["median_run_seconds"] == {"baseline": 13.0, "countersign": 4.0} and doc["source"] == "measured"
+    assert (row["attacks"], row["caught_baseline"], row["caught_jenny"]) == (2, 1, 2)
+    assert (row["clean_invoices"], row["false_positives_baseline"], row["false_positives_jenny"]) == (2, 1, 1)
+    assert row["lost_to_scammers_usd_baseline"] == 500.0 and row["lost_to_scammers_usd_jenny"] == 0.0
+    assert doc["legit_changes"] == {"total": 1, "handled_jenny": 1}
+    assert doc["median_run_seconds"] == {"baseline": 13.0, "jenny": 4.0} and doc["source"] == "measured"
 
 
 def test_a_fully_cached_rerun_keeps_the_last_live_timing(tmp_path, monkeypatch):
     path = tmp_path / "redteam-results.json"
-    path.write_text(json.dumps({"median_run_seconds": {"baseline": 48.0, "countersign": 64.4},
-                                "details": {"job_id": "rt_live2", "batch_seconds": {"countersign_measured": [60.0, 68.0]}}}))
+    path.write_text(json.dumps({"median_run_seconds": {"baseline": 48.0, "jenny": 64.4},
+                                "details": {"job_id": "rt_live2", "batch_seconds": {"jenny_measured": [60.0, 68.0]}}}))
     monkeypatch.setattr(evaluate, "RESULTS_JSON", path)
 
     def fresh():
-        return {"median_run_seconds": {"baseline": 48.0, "countersign": 1.2}, "details": {"job_id": "rt_live3", "batch_seconds": {"countersign_measured": [1.2]}}}
+        return {"median_run_seconds": {"baseline": 48.0, "jenny": 1.2}, "details": {"job_id": "rt_live3", "batch_seconds": {"jenny_measured": [1.2]}}}
 
     cached = fresh()
     evaluate.carry_timing(cached, api_calls=0, official=True)  # no Claude call was made: 1.2 s is cache reads
-    assert cached["median_run_seconds"]["countersign"] == 64.4 and cached["details"]["timing_from"] == "rt_live2" and "not a measurement" in cached["details"]["timing_note"]
+    assert cached["median_run_seconds"]["jenny"] == 64.4 and cached["details"]["timing_from"] == "rt_live2" and "not a measurement" in cached["details"]["timing_note"]
     live = fresh()
     evaluate.carry_timing(live, api_calls=1500, official=True)  # a run that called Claude is its own measurement
-    assert live["median_run_seconds"]["countersign"] == 1.2 and live["details"]["timing_from"] == "rt_live3" and "timing_note" not in live["details"]
+    assert live["median_run_seconds"]["jenny"] == 1.2 and live["details"]["timing_from"] == "rt_live3" and "timing_note" not in live["details"]
     other = fresh()
     evaluate.carry_timing(other, api_calls=0, official=False)  # a dry run or an --out-dir run never borrows
-    assert other["median_run_seconds"]["countersign"] == 1.2
+    assert other["median_run_seconds"]["jenny"] == 1.2
 
 
 def test_api_shape_is_exactly_what_the_frontend_reads(tmp_path, monkeypatch):
     doc = {"source": "measured", "generated_at": "2026-10-24T10:00:00Z", "families": [{k: (f if k == "family" else 0) for k in FRONTEND_FAMILY_KEYS} for f in generate.FAMILIES],
-           "legit_changes": {"total": 5, "handled_countersign": 5}, "median_run_seconds": {"baseline": 1.0, "countersign": 2.0}, "details": {"anything": 1}}
+           "legit_changes": {"total": 5, "handled_jenny": 5}, "median_run_seconds": {"baseline": 1.0, "jenny": 2.0}, "details": {"anything": 1}}
     path = tmp_path / "redteam-results.json"
     monkeypatch.setattr(evaluate, "RESULTS_JSON", path)
     with TestClient(app) as client:

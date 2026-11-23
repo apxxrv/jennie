@@ -58,7 +58,7 @@ from app.models import (
 )
 from app.services import contacts, conversation, identity, payments, voice
 
-log = logging.getLogger("countersign.verify")
+log = logging.getLogger("jenny.verify")
 
 CALL_TIMEOUT_SECONDS = 60  # the 60 s rule: an answered call with no final answer by then is unclear
 MAX_TRIES = 2

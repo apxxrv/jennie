@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { type ReactNode, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CountersignMark } from "@/components/shared/countersign-mark";
+import { JennyMark } from "@/components/shared/jenny-mark";
 import { iconProps } from "@/components/shared/icon";
 import { Money } from "@/components/shared/money";
 import { StatusBadge } from "@/components/shared/status-badge";
@@ -135,7 +135,7 @@ const STORY: { title: string; text: string; visual: ReactNode }[] = [
     visual: <EmailCard />,
   },
   {
-    title: "Countersign holds the payment.",
+    title: "Jenny holds the payment.",
     text: "A new bank account is a hard rule: the payment is held whatever the score says, with every reason on record.",
     visual: <HoldCard />,
   },
@@ -166,7 +166,7 @@ export function ScamStory() {
     <section id="scam" className="scroll-mt-20 border-b border-rule bg-surface py-16">
       <div className="mx-auto max-w-[1120px] px-4 sm:px-6">
         <BlurFade>
-          <SectionHead title="The scam, step by step" lead="The most common payment fraud there is, played against Countersign with a real phone call." />
+          <SectionHead title="The scam, step by step" lead="The most common payment fraud there is, played against Jenny with a real phone call." />
           <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_440px]">
             <ol>
               {STORY.map((s, i) => (
@@ -240,7 +240,7 @@ function BlockedCard() {
     <Panel status="blocked">
       <div className="flex items-center justify-between"><StatusBadge status="blocked" /><Money amount={18613.56} /></div>
       <div className="mt-3 space-y-2 text-sm">
-        <p><span className="text-ink-muted">Countersign</span> Did your company make this change? Please say yes or no.</p>
+        <p><span className="text-ink-muted">Jenny</span> Did your company make this change? Please say yes or no.</p>
         <p className="text-md font-medium">"No, we never changed banks."</p>
       </div>
       <p className="mt-3 text-sm text-ink-muted">Blocked 31.5 s after the email arrived. Request marked as fraud.</p>
@@ -312,9 +312,9 @@ export function Proof() {
             <table className="w-full min-w-[520px] text-left">
               <thead>
                 <tr className="h-9 border-b border-rule text-sm text-ink-muted">
-                  <th className="px-4 font-normal">Countersign against a typical AI agent</th>
+                  <th className="px-4 font-normal">Jenny against a typical AI agent</th>
                   <th className="w-36 px-3 text-center font-normal">Typical AI agent</th>
-                  <th className="w-36 px-4 text-center font-normal">Countersign</th>
+                  <th className="w-36 px-4 text-center font-normal">Jenny</th>
                 </tr>
               </thead>
               <tbody>
@@ -388,7 +388,7 @@ export function ClosingCta() {
 export function Footer() {
   return (
     <footer className="mx-auto flex max-w-[1120px] flex-wrap items-center gap-x-6 gap-y-2 px-4 py-8 text-sm text-ink-muted sm:px-6">
-      <span className="flex items-center gap-2 font-medium text-ink"><CountersignMark />Countersign</span>
+      <span className="flex items-center gap-2 font-medium text-ink"><JennyMark />Jenny</span>
       <span>Built at Cal Hacks 13.0. Fictional company, sandbox money only.</span>
       <span className="flex gap-4 sm:ml-auto">
         {HAS_APP && (

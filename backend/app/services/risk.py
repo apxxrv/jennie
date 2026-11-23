@@ -50,7 +50,7 @@ from app.models import Decision, Message, Payment, RiskAssessment, Signal, Vendo
 from app.services.identity import IdentityResult
 from app.services.injection import Finding, _NO_FORCED_TOOL_CHOICE, _wrap
 
-log = logging.getLogger("countersign.risk")
+log = logging.getLogger("jenny.risk")
 
 MODEL_VERSION = "mock-risk-1"
 REAL_MODEL_VERSION = "risk-1"

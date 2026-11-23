@@ -13,7 +13,7 @@
     {
      "at": 0.0,
      "for": 4.9,
-     "who": "Countersign (automated voice)",
+     "who": "Jenny (automated voice)",
      "text": "Did your company make this change? A simple yes or no is all I need."
     },
     {
@@ -103,7 +103,7 @@
     {
      "at": 0.2,
      "for": 7.6,
-     "text": "This is Countersign. It runs your weekly vendor payments, and it never sends money to a new account without proof from outside the email."
+     "text": "This is Jenny. It runs your weekly vendor payments, and it never sends money to a new account without proof from outside the email."
     }
    ]
   },
@@ -198,7 +198,7 @@
     {
      "at": 3.4,
      "for": 5.4,
-     "who": "Countersign (automated voice)",
+     "who": "Jenny (automated voice)",
      "text": "We received a request to change where we send Summit Concrete's payments, to an account ending 6213."
     }
    ],
@@ -288,12 +288,12 @@
     {
      "at": 0.3,
      "for": 6.2,
-     "text": "Countersign fills the accounts payable seat for the weekly payment run, for small finance teams paying fifty or more vendors a week."
+     "text": "Jenny fills the accounts payable seat for the weekly payment run, for small finance teams paying fifty or more vendors a week."
     },
     {
      "at": 6.5,
      "for": 5.3,
-     "text": "It never has the power to change where money goes. Countersign. Try to rob it."
+     "text": "It never has the power to change where money goes. Jenny. Try to rob it."
     }
    ]
   },
@@ -312,7 +312,7 @@
     {
      "at": 0.3,
      "for": 5.5,
-     "text": "It never has the power to change where money goes. Countersign. Try to rob it."
+     "text": "It never has the power to change where money goes. Jenny. Try to rob it."
     }
    ]
   },

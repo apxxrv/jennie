@@ -62,7 +62,7 @@ from app.services import extract, identity, injection, layout, payments, risk, v
 from app.services.injection import Finding, ScanItem
 from app.services.risk import Assessment, Destination, RiskContext
 
-log = logging.getLogger("countersign.run")
+log = logging.getLogger("jenny.run")
 router = APIRouter()
 
 CONCURRENCY = 5

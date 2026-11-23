@@ -28,7 +28,7 @@ from app.db import engine
 from app.models import Attack, AttackSource
 from app.services import ask, attacks, run
 
-log = logging.getLogger("countersign.reset")
+log = logging.getLogger("jenny.reset")
 router = APIRouter()
 
 BACKEND = Path(__file__).resolve().parents[2]

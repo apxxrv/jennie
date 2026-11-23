@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-log = logging.getLogger("countersign.liveness")
+log = logging.getLogger("jenny.liveness")
 
 PATH = Path(os.environ.get("LIVENESS_PATH", "./.cache/last_success.json"))  # tests point this at a temp dir
 _lock = threading.Lock()

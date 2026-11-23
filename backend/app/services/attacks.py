@@ -71,7 +71,7 @@ from app.services.ingest import MAX_BODY_CHARS, MAX_PDF_BYTES, _EMAIL_RE, vendor
 BOUNTY_LIMIT = 5  # submissions per sender per hour
 BOUNTY_WINDOW = timedelta(hours=1)
 
-log = logging.getLogger("countersign.attacks")
+log = logging.getLogger("jenny.attacks")
 router = APIRouter()
 
 BACKEND = Path(__file__).resolve().parents[2]

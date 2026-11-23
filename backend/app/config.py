@@ -61,7 +61,7 @@ class Settings(BaseSettings):
     aws_region: str = "us-east-1"
     aws_profile: str = ""
 
-    database_url: str = "sqlite:///./countersign.db"
+    database_url: str = "sqlite:///./jenny.db"
 
     demo_vendor_phone: str = ""
     # Comma separated. Kept as a string because pydantic-settings parses list env vars as JSON.

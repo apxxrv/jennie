@@ -1,4 +1,4 @@
-# Countersign frontend design system
+# Jenny frontend design system
 
 This file is the source of truth for every screen in `frontend/`. Tokens live in `src/styles/globals.css` and must match this file. To see them rendered, run the dev server and open `/design-check` (a hidden route, not linked from the app).
 
@@ -6,7 +6,7 @@ If a design need is not covered here, add it here first, then build it.
 
 ## What it should feel like
 
-Countersign runs a small AP team's weekly vendor payment run and stops fraudulent payments. The users are an AP clerk (runs the run) and a controller (approves exceptions). The interface is a financial instrument: a bank ledger crossed with an audit tool. Calm, dense, precise, trustworthy.
+Jenny runs a small AP team's weekly vendor payment run and stops fraudulent payments. The users are an AP clerk (runs the run) and a controller (approves exceptions). The interface is a financial instrument: a bank ledger crossed with an audit tool. Calm, dense, precise, trustworthy.
 
 References: Linear's restraint, Mercury's clarity with money, a printed accounts ledger. Not a crypto dashboard. Not a SaaS landing page.
 
@@ -120,7 +120,7 @@ Line lengths stay under 80 characters for prose. Headings use sentence case.
 
 shadcn/ui primitives live in `src/components/ui/` and have been restyled to these tokens: button, badge, table, sheet, dialog, tabs, tooltip, input, textarea, select, dropdown-menu, separator, scroll-area, skeleton, sonner, command. When adding another with the shadcn CLI, restyle it before use: replace `bg-accent` hovers with `bg-sunken` (our accent is ink blue, not a hover gray), drop `shadow-*` except `shadow-overlay` on overlays, drop `rounded-full`, and swap zoom or slide animations for the ones in Motion below. Import `cn` from `@/lib/utils`, not the `cn` package.
 
-Countersign components live beside them: `board/`, `payment/`, `call/`, `inbox/`, `attack/`, and `shared/` for cross-screen pieces.
+Jenny components live beside them: `board/`, `payment/`, `call/`, `inbox/`, `attack/`, and `shared/` for cross-screen pieces.
 
 | Component | File | Notes |
 |---|---|---|
@@ -139,7 +139,7 @@ Countersign components live beside them: `board/`, `payment/`, `call/`, `inbox/`
 | `AttackCardPicker` | `attack/attack-card-picker.tsx` | Selectable cards over native radios (arrow keys, focus ring). The label selects; "What we'll check" is outside it, so expanding never selects. Selected: accent edge and tint. |
 | `PinnedAttack` | `board/pinned-attack.tsx` | A judge's attack pinned above the ledger in an accent outline, with its own row that reveals the result. The attack console never shows the result. |
 | Leaderboard | `pages/Leaderboard.tsx` | Second screen. Light like every other page; dark with `?tv=1`, for a TV across the room. "Money moved to attackers" is the one headline figure (text-2xl mono). New attempts slide in at the top; a miss stays, marked "Logged as new test case". `?tv=1`: zoom 1.5, refresh every 10 s, cursor hidden after 3 s idle. The bounty QR (fixed dark-on-white print colors) shows only when `VITE_BOUNTY_EMAIL` is set. |
-| Red team chart | `redteam/catch-rate-chart.tsx` | Recharts grouped bars: baseline in muted ink, Countersign in accent, square marks, 2px gap, rate printed on every bar, inline legend above the plot, axes labeled in place, hover tooltip with counts. |
+| Red team chart | `redteam/catch-rate-chart.tsx` | Recharts grouped bars: baseline in muted ink, Jenny in accent, square marks, 2px gap, rate printed on every bar, inline legend above the plot, axes labeled in place, hover tooltip with counts. |
 | `InlineError` | `shared/inline-error.tsx` | Every failed fetch: "{What} did not load." plus a plain sentence from `ApiError` and a "Try again" button. Never JSON, never a stack trace, never a status color. A cell-sized lookup (a row's invoice number) shows a quiet dash instead. |
 | System status | `pages/SystemStatus.tsx` | One list: Real (accent badge), Sandboxed or Simulated (neutral), each with one line on how we know. A component whose MOCK_* flag is on says "Running on its mock on this server" under its line, so a label never overstates what is running. |
 | `DemoShortcuts` | `shared/demo-shortcuts.tsx` | S start run, R reset (confirms), A attack console, L leaderboard window, F presentation mode, ? this list. Never while typing, never as the second key of a G chord; with a dialog open only F and ?. The list is a dialog of hairline rows, keys in `Kbd`. |
@@ -150,11 +150,11 @@ Formatting lives in `src/lib/format.ts`: `formatUSD`, `formatAccount` (last four
 
 ## Project page
 
-`/about` (`pages/About.tsx`, sections in `components/landing/`) is the landing page for judges, sponsors and anyone who arrives without a guide. It sits inside the app shell like every other page (sidebar "About Countersign"). Same tokens, type, hairlines and payment-state colors as the app; paid green, held amber and blocked brick mean the same thing here as on the board.
+`/about` (`pages/About.tsx`, sections in `components/landing/`) is the landing page for judges, sponsors and anyone who arrives without a guide. It sits inside the app shell like every other page (sidebar "About Jenny"). Same tokens, type, hairlines and payment-state colors as the app; paid green, held amber and blocked brick mean the same thing here as on the board.
 
 It is the one page with these exceptions to the rules above, and only these:
 
-- A hero: the headline "Every payment, countersigned." in `text-2xl`, resolved once on load from scrambled glyphs (`EncryptedText`, laid out in flow from the start so nothing shifts), a challenge badge whose text takes one sheen pass after load, and a faint still ledger grid behind it.
+- A hero: the headline "Every payment, jennyed." in `text-2xl`, resolved once on load from scrambled glyphs (`EncryptedText`, laid out in flow from the start so nothing shifts), a challenge badge whose text takes one sheen pass after load, and a faint still ledger grid behind it.
 - Two loops: the hero's sample-run feed (`AnimatedList`, labeled "Sample run", seeded invoices only) and the sponsor strip (`Marquee`, text wordmarks, pauses on hover and focus).
 - Scroll reveals on three sections only (journey, scam story, proof): one fade with a 4px blur, once. The journey beam fills node to node once when it scrolls into view, and proof figures count up once.
 
@@ -202,10 +202,10 @@ lucide-react only. 16px, stroke 1.75: `<Phone {...iconProps} />`. Icons sit besi
 Marketing: mountain blue, Georgia display type, interactive illustrative phone calls. Dashboard: Arial, navy navigation, white panels. Tokens in src/styles/redesign.css: paper #f5f7fb, ink #182539, muted #647187, rule #e2e8f0, accent #2463d5. Homepage at /; payment overview at /dashboard; original payment deep links retained.
 
 ## Payment desk refinement
-Use text-only Countersign wordmarks. Dusk blue workspace with translucent summary panels and white decision surfaces, inspired by the provided creator studio reference. Order information by: review queue, protected funds, safely paid, progress, searchable payment ledger, expandable audit history. Marketing call story uses two scroll-selected stages, a cropped phone, glossy transcript bubbles, and six bundled synthetic voice clips. Audio begins only on user interaction.
+Use text-only Jenny wordmarks. Dusk blue workspace with translucent summary panels and white decision surfaces, inspired by the provided creator studio reference. Order information by: review queue, protected funds, safely paid, progress, searchable payment ledger, expandable audit history. Marketing call story uses two scroll-selected stages, a cropped phone, glossy transcript bubbles, and six bundled synthetic voice clips. Audio begins only on user interaction.
 
 ## Jenny and the email workspace
-Jenny is the named automated verification assistant: careful, direct, and transparent about uncertainty. The main dashboard is a white email inbox with readable sender/subject text, search, pagination, local starred state, and evidence-backed Flagged by Jenny labels from useDetections. Homepage has poster-grain texture, a reduced-motion-aware scam shimmer, scroll-synchronized dialogue, and generated neural demo audio. The provided WaterCard is used as a verified-account illustration, without collecting card details. The supplied FuzzyCritterFooter is branded to Countersign and loaded near the footer. Styles live in src/styles/jenny.css.
+Jenny is the named automated verification assistant: careful, direct, and transparent about uncertainty. The main dashboard is a white email inbox with readable sender/subject text, search, pagination, local starred state, and evidence-backed Flagged by Jenny labels from useDetections. Homepage has poster-grain texture, a reduced-motion-aware scam shimmer, scroll-synchronized dialogue, and generated neural demo audio. The provided WaterCard is used as a verified-account illustration, without collecting card details. The supplied FuzzyCritterFooter is branded to Jenny and loaded near the footer. Styles live in src/styles/jenny.css.
 
 ## Run Jenny interaction
 Jenny uses the supplied pink fuzzy character. The main payment inbox has compact Gmail-style rows and solid red detected flags. Run Jenny opens an accessible translucent phone dialog with two explicit verification examples, automatic audio playback, vendor selection, transcript turns, pause, and cleanup on close. It does not dial or modify payments. Optional ElevenLabs speech is served by /api/jenny/voice when ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID are configured; otherwise bundled neural demo audio is used and labeled.

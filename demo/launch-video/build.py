@@ -1,6 +1,6 @@
 """Builds the launch video from the real takes in demo/raw/, the Cartesia narration in vo/ and the overlays in build/overlays/.
 
-    python3 demo/launch-video/build.py            # writes countersign-launch.mp4 and countersign-30s.mp4
+    python3 demo/launch-video/build.py            # writes jenny-launch.mp4 and jenny-30s.mp4
 
 Every shot is a recording of the running app; the call audio is the real call. Nothing is generated except the narration (Cartesia)
 and the two title cards. See timeline.json for the cut and script.md for the numbers and their sources.
@@ -133,5 +133,5 @@ def build(name: str, ids: list[str] | None = None) -> Path:
 
 
 if __name__ == "__main__":
-    build("countersign-launch")
-    build("countersign-30s", ["cold_call", "cold_blocked", "intro", "close_short", "end_short"])
+    build("jenny-launch")
+    build("jenny-30s", ["cold_call", "cold_blocked", "intro", "close_short", "end_short"])

@@ -1,4 +1,4 @@
-# Rob Countersign bounty inbox
+# Rob Jenny bounty inbox
 
 Source: `backend/app/services/bounty.py`. Provider: Postmark inbound email, or Amazon SES through SNS (see [SES inbound](#ses-inbound)).
 

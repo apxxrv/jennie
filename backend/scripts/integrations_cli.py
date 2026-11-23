@@ -81,7 +81,7 @@ def smoke_cartesia(_args) -> int:
     if not (s.cartesia_api_key and s.cartesia_voice_id):
         return _result(False, "CARTESIA_API_KEY or CARTESIA_VOICE_ID is empty")
     try:
-        path = asyncio.run(voice.tts_file("This is Countersign testing", s))
+        path = asyncio.run(voice.tts_file("This is Jenny testing", s))
     except Exception as exc:  # noqa: BLE001
         return _result(False, f"Cartesia request failed: {type(exc).__name__}")
     return _result(path.exists() and path.stat().st_size > 1000, f"wrote {path}")
@@ -100,7 +100,7 @@ def smoke_nessie(_args) -> int:
             "first_name": "Smoke", "last_name": "Test",
             "address": {"street_number": "1", "street_name": "Sandbox St", "city": "San Francisco", "state": "CA", "zip": "94123"}}))
         acct = payments._created(payments._nessie("POST", f"/customers/{cust['_id']}/accounts", json={
-            "type": "Checking", "nickname": "countersign-smoke", "rewards": 0, "balance": 100}))
+            "type": "Checking", "nickname": "jenny-smoke", "rewards": 0, "balance": 100}))
         print(f"  created test account {acct['_id']}")
     except Exception as exc:  # noqa: BLE001
         return _result(False, str(exc))
@@ -181,7 +181,7 @@ def smoke_transfer(_args) -> int:
         payments._load_accounts()
         if dest.id not in payments._account_cache or payments.OPERATING_NICKNAME not in payments._account_cache:
             return _result(False, "Nessie accounts missing; run setup-nessie first")
-        transfer_id = payments._real_transfer(dest.id, 1.00, "Countersign smoke transfer")
+        transfer_id = payments._real_transfer(dest.id, 1.00, "Jenny smoke transfer")
         print(f"  created transfer {transfer_id} to account nicknamed {dest.id}")
         got = payments.fetch_transfer(dest.id, transfer_id)
         if got is None:

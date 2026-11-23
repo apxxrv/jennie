@@ -13,7 +13,7 @@ process.on("unhandledRejection", (e) => { console.error(e); process.exit(1); });
 
 const browser = await chromium.launch({ channel: "chrome", headless: true });
 const context = await browser.newContext({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
-await context.addInitScript(() => { try { sessionStorage.setItem("countersign-presenting", "1"); } catch {} });
+await context.addInitScript(() => { try { sessionStorage.setItem("jenny-presenting", "1"); } catch {} });
 const page = await context.newPage();
 await page.goto(`${APP}/inbox`);
 await sleep(2500);

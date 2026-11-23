@@ -62,10 +62,10 @@ export function Hero() {
             </AppLink>
           )}
           <h1 className="text-2xl font-semibold">
-            <EncryptedText text="Every payment, countersigned." />
+            <EncryptedText text="Every payment, jennyed." />
           </h1>
           <p className="mt-4 max-w-[600px] text-md text-ink-muted">
-            Countersign is the AI accounts-payable agent that runs your weekly payment run and verifies every new bank detail with a real phone
+            Jenny is the AI accounts-payable agent that runs your weekly payment run and verifies every new bank detail with a real phone
             call before any money moves.
           </p>
           <div className="mt-6 flex flex-wrap gap-2">

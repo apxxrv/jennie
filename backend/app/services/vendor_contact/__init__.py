@@ -11,7 +11,7 @@ import httpx
 from .assess import build_row, failed_row
 from .crawl import crawl_site
 
-log = logging.getLogger("countersign.vendor_contact")
+log = logging.getLogger("jenny.vendor_contact")
 
 DEFAULT_EXTRA_PATHS = ["/contact", "/contact-us", "/about"]
 MAX_PAGES_LIMIT = 30

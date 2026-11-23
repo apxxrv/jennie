@@ -6,7 +6,7 @@ import { iconProps } from "@/components/shared/icon";
 import { useVisibleNav, type NavItem } from "@/components/shared/nav";
 import { cn } from "@/lib/utils";
 
-const STORAGE_KEY = "countersign-sidebar-collapsed";
+const STORAGE_KEY = "jenny-sidebar-collapsed";
 
 function readCollapsed() {
   try {
@@ -39,7 +39,7 @@ export function Sidebar() {
       )}
     >
       <div className="flex h-12 shrink-0 items-center gap-2.5 border-b border-rule px-[18px]">
-        <Link to="/" aria-label="Countersign homepage" className="workspace-wordmark">{collapsed ? "C" : "Countersign"}</Link>
+        <Link to="/" aria-label="Jenny homepage" className="workspace-wordmark">{collapsed ? "C" : "Jenny"}</Link>
       </div>
 
       <nav aria-label="Main" className="flex flex-1 flex-col gap-0.5 p-2">

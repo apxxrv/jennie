@@ -45,7 +45,7 @@ from app.config import get_settings
 from app.services import liveness
 from app.models import InjectionFinding, new_id
 
-log = logging.getLogger("countersign.injection")
+log = logging.getLogger("jenny.injection")
 
 
 @dataclass

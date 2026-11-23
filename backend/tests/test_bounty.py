@@ -1,4 +1,4 @@
-"""The Rob Countersign bounty inbox: Postmark webhook, secret, limits, moderation, and the same pipeline as every invoice."""
+"""The Rob Jenny bounty inbox: Postmark webhook, secret, limits, moderation, and the same pipeline as every invoice."""
 
 import base64
 import time

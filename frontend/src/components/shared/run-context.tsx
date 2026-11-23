@@ -46,8 +46,8 @@ interface CurrentRun {
 }
 
 const RunContext = createContext<CurrentRun | null>(null);
-const STORAGE_KEY = "countersign-run";
-const PIN_KEY = "countersign-pinned-attack";
+const STORAGE_KEY = "jenny-run";
+const PIN_KEY = "jenny-pinned-attack";
 
 // A real run outlives a reload, so remember it. A mock or replay run lives in memory and is gone after a reload.
 function readStoredRun(): string | null {

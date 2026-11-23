@@ -48,7 +48,7 @@ ATTACKER_SLUG = "summit-concrete-co"
 ATTACKER_PHONE = "+14155550166"
 SUMMIT_SLUG = "summit-concrete"
 
-FICTION = "Fictional company created for the Countersign hackathon demo. Not a real business."
+FICTION = "Fictional company created for the Jenny hackathon demo. Not a real business."
 
 ABOUT = {
     "concrete": "Ready-mix concrete, delivered on schedule to job sites across the Bay Area. Foundations, slabs, flatwork and pumped pours.",
@@ -221,9 +221,9 @@ def render_root(sites: list[Site]) -> str:
     items = "\n".join(f'<li><a href="{esc(s.slug)}/">{esc(s.name)}</a></li>' for s in sorted(sites, key=lambda s: s.slug))
     return f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Countersign demo vendor sites</title>
+<title>Jenny demo vendor sites</title>
 <style>body{{font:16px/1.6 system-ui,sans-serif;max-width:760px;margin:40px auto;padding:0 20px;color:#1d2328}}li{{margin:2px 0}}p.f{{color:#5d6870;font-size:13px}}</style></head>
-<body><h1>Countersign demo vendor sites</h1>
+<body><h1>Jenny demo vendor sites</h1>
 <p>One small website per fictional vendor of Ridgeline Builders, for testing a phone lookup. {esc(FICTION)}</p>
 <ul>
 {items}

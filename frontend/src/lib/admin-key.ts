@@ -4,7 +4,7 @@
 
 import { useSyncExternalStore } from "react";
 
-const STORAGE_KEY = "countersign-admin-key";
+const STORAGE_KEY = "jenny-admin-key";
 
 export function getAdminKey(): string | null {
   try {

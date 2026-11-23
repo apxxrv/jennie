@@ -26,7 +26,7 @@ import httpx
 from app.config import Settings, get_settings
 from app.services import liveness
 
-log = logging.getLogger("countersign.voice")
+log = logging.getLogger("jenny.voice")
 
 AUDIO_DIR = Path(__file__).resolve().parents[2] / ".audio_cache"
 AUDIO_NAME_RE = re.compile(r"^[0-9a-f]{64}\.wav$")

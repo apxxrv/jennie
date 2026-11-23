@@ -30,7 +30,7 @@ from app.models import (
     utcnow,
 )
 
-log = logging.getLogger("countersign.events")
+log = logging.getLogger("jenny.events")
 
 KEEPALIVE_SECONDS = 15
 QUEUE_MAX = 1000

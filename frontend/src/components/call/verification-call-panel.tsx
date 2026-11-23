@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 // larger than the rest of the drawer and leads with the pitch point: the number is trusted for reasons that have
 // nothing to do with the email that asked for the change.
 
-const SPEAKER = { agent: "Countersign", vendor: "Vendor" } as const;
+const SPEAKER = { agent: "Jenny", vendor: "Vendor" } as const;
 
 /** `evidenceId` (the stored call id) registers each transcript line as `<id>#<n>`, so an /ask citation can point at it. */
 export function VerificationCallPanel({ call, trust, evidenceId, vendorId = null }: { call: CallView; trust: NumberTrust; evidenceId?: string; vendorId?: string | null }) {

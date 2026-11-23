@@ -213,7 +213,7 @@ def test_the_committed_sites_folder_holds_only_fictional_phone_numbers():
 
 
 def test_every_link_in_the_committed_sites_is_relative_and_resolves():
-    """The sites live under /Countersign/<slug>/, so a link that starts with / or http would leave them. Only Haulaway's contact link is
+    """The sites live under /Jenny/<slug>/, so a link that starts with / or http would leave them. Only Haulaway's contact link is
     allowed to be dead: it is the missing-contact-page edge case."""
     dead = []
     for p in PUBLISHED.rglob("*.html"):

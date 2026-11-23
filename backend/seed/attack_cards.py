@@ -23,7 +23,7 @@ def build_cards(s) -> list[dict]:
         {
             "title": "classic_bank_change",
             "does": "Replies inside the real Summit Concrete invoice thread from a lookalike domain and asks to update remittance.",
-            "catches": "New bank details (30), lookalike domain (25), Reply-To mismatch (15), urgency language (15), first message from this sender (10). Hard rule: destination changed, so Countersign calls Summit Concrete at the number on file. Summit says no, the payment is blocked.",
+            "catches": "New bank details (30), lookalike domain (25), Reply-To mismatch (15), urgency language (15), first message from this sender (10). Hard rule: destination changed, so Jenny calls Summit Concrete at the number on file. Summit says no, the payment is blocked.",
             "request": {
                 "attacker_name": "Judge Priya",
                 "card": "classic_bank_change",
@@ -57,7 +57,7 @@ def build_cards(s) -> list[dict]:
         {
             "title": "ceo_pressure",
             "does": "Writes as the CEO from a lookalike of Ridgeline's own domain: the CEO approved it, pay today, keep it quiet, new account attached.",
-            "catches": "Authority and secrecy language (15), new bank details (30), first message from this sender (10), outside the vendor's usual hours when sent at night (5). Hard rule: destination changed, so Countersign calls the vendor.",
+            "catches": "Authority and secrecy language (15), new bank details (30), first message from this sender (10), outside the vendor's usual hours when sent at night (5). Hard rule: destination changed, so Jenny calls the vendor.",
             "request": {
                 "attacker_name": "Judge Lee",
                 "card": "ceo_pressure",
@@ -73,7 +73,7 @@ def build_cards(s) -> list[dict]:
         {
             "title": "freestyle_phone_swap",
             "does": "Moves the bank and also supplies a new phone number to call, hoping the callback goes to the attacker.",
-            "catches": "Lookalike domain, new bank details, and contact details that differ from the verified ones. Countersign ignores the new number and calls the independent one.",
+            "catches": "Lookalike domain, new bank details, and contact details that differ from the verified ones. Jenny ignores the new number and calls the independent one.",
             "request": {
                 "attacker_name": "Freestyle Ana",
                 "card": "freestyle",
@@ -152,7 +152,7 @@ def render(cards: list[dict]) -> str:
         "",
     ]
     for c in cards:
-        out += [f"## {c['title']}", "", f"What the judge does: {c['does']}", "", f"What Countersign catches: {c['catches']}", "", "Request:", "",
+        out += [f"## {c['title']}", "", f"What the judge does: {c['does']}", "", f"What Jenny catches: {c['catches']}", "", "Request:", "",
                 "```json", json.dumps(c["request"], indent=2, ensure_ascii=False), "```", ""]
         if c.get("variants"):
             out += ["Poisoned PDFs available for the `pdf` field (one hiding technique each):", ""]

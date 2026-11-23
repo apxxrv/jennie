@@ -29,7 +29,7 @@ from app.services import liveness
 from app import db
 from app.models import Invoice, Payment, PaymentStatus, Vendor, VendorBankAccount, new_id, utcnow
 
-log = logging.getLogger("countersign.payments")
+log = logging.getLogger("jenny.payments")
 
 # Nessie sandbox. The key goes in the query string; it is never logged.
 NESSIE_URL = "https://api.nessieisreal.com"  # plain http (port 80) is refused
@@ -284,7 +284,7 @@ async def pay_payment(session: Session, payment_id: str) -> str:
     if payment.nessie_transfer_id and payment.status == PaymentStatus.paid:
         return payment.nessie_transfer_id
     _guard(payment, session)
-    transfer_id = await create_transfer(payment.destination_account_id, payment.amount_usd, f"Countersign payment {payment.id}")
+    transfer_id = await create_transfer(payment.destination_account_id, payment.amount_usd, f"Jenny payment {payment.id}")
     payment.status, payment.nessie_transfer_id = PaymentStatus.paid, str(transfer_id)
     mode = record_transfer_mode(session, payment, transfer_id)
     session.add(payment)
@@ -307,7 +307,7 @@ class RealTransferSender:
         if payment.nessie_transfer_id:
             return payment.nessie_transfer_id
         _guard(payment)
-        return await create_transfer(payment.destination_account_id, payment.amount_usd, f"Countersign payment {payment.id}")  # type: ignore[arg-type]
+        return await create_transfer(payment.destination_account_id, payment.amount_usd, f"Jenny payment {payment.id}")  # type: ignore[arg-type]
 
 
 def get_sender() -> TransferSender:

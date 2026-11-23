@@ -17,7 +17,7 @@ import { useQueryClient } from "@tanstack/react-query";
 /** Seconds into a call after which it is worth offering another way. */
 export const TROUBLE_AFTER_S = 45;
 
-const KEY = "countersign-vendor-phone-key";
+const KEY = "jenny-vendor-phone-key";
 const readKey = () => {
   try {
     return sessionStorage.getItem(KEY) ?? "";
@@ -63,7 +63,7 @@ export function CallTrouble({ call, vendorId }: { call: CallView; vendorId: stri
     } catch {
       // Not kept; it is asked for again next time.
     }
-    window.open(`${API_URL}/api/voice/vendor-phone/${encodeURIComponent(vendorId)}?k=${encodeURIComponent(key.trim())}`, "countersign-softphone", "popup,width=420,height=720");
+    window.open(`${API_URL}/api/voice/vendor-phone/${encodeURIComponent(vendorId)}?k=${encodeURIComponent(key.trim())}`, "jenny-softphone", "popup,width=420,height=720");
     setAsking(false);
   }
 

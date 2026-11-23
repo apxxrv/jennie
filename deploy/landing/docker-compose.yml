@@ -14,7 +14,7 @@ services:
       - "443:443"
       - "443:443/udp"
     environment:
-      DOMAIN: ${DOMAIN:?set DOMAIN to the site's domain, for example DOMAIN=countersign.tech}
+      DOMAIN: ${DOMAIN:?set DOMAIN to the site's domain, for example DOMAIN=jenny.tech}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       # Certificates and Caddy's state survive restarts and rebuilds, so a redeploy never asks Let's Encrypt again.

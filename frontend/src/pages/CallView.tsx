@@ -7,7 +7,7 @@ import { PhoneCall, ShieldCheck } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CallMark, LimitLine, OUTCOME, useElapsed } from "@/components/call/call-parts";
-import { CountersignMark } from "@/components/shared/countersign-mark";
+import { JennyMark } from "@/components/shared/jenny-mark";
 import { iconProps } from "@/components/shared/icon";
 import { StatusBadge } from "@/components/shared/status-badge";
 import { api } from "@/lib/api";
@@ -43,7 +43,7 @@ export function CallView() {
       >
         <header className="border-b border-rule px-5 pt-5 pb-4">
           <p className="flex items-center gap-2 text-sm text-ink-muted">
-            <CountersignMark className="size-4" />
+            <JennyMark className="size-4" />
             Live view of the verification call
           </p>
           <div className="mt-4 flex items-center gap-3">
@@ -68,7 +68,7 @@ export function CallView() {
         <ol className="flex-1 space-y-4 overflow-y-auto px-5 py-4" aria-live="polite">
           {(call?.lines ?? []).map((l, i) => (
             <li key={i} ref={i === (call?.lines.length ?? 0) - 1 ? end : undefined} className={cn("max-w-[88%]", l.speaker === "vendor" && "ml-auto text-right")}>
-              <p className="text-xs text-ink-muted">{l.speaker === "agent" ? "Countersign (automated)" : d?.vendor?.name ?? "Vendor"}</p>
+              <p className="text-xs text-ink-muted">{l.speaker === "agent" ? "Jenny (automated)" : d?.vendor?.name ?? "Vendor"}</p>
               <p className={cn("mt-1", l.speaker === "vendor" ? "text-md font-medium" : "text-ink")}>{l.text}</p>
             </li>
           ))}

@@ -166,9 +166,9 @@ export function buildTimeline(d: PaymentDetail, modes: ServiceModes): TimelineSt
       status: "paid",
     });
   } else if (s === "blocked") {
-    steps.push({ key: "outcome", title: "Blocked", result: `${money} was not paid`, service: "Countersign", mode: "local", status: "blocked" });
+    steps.push({ key: "outcome", title: "Blocked", result: `${money} was not paid`, service: "Jenny", mode: "local", status: "blocked" });
   } else if (s === "held") {
-    steps.push({ key: "outcome", title: "Held", result: `${money} waits for the controller`, service: "Countersign", mode: "local", status: "held" });
+    steps.push({ key: "outcome", title: "Held", result: `${money} waits for the controller`, service: "Jenny", mode: "local", status: "held" });
   }
   return steps;
 }

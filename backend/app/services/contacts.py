@@ -25,7 +25,7 @@ from app.config import get_settings
 from app.services import liveness
 from app.models import Vendor, utcnow
 
-log = logging.getLogger("countersign.contacts")
+log = logging.getLogger("jenny.contacts")
 
 # Fictional number that is never dialed (the 555-01xx range is reserved for fiction).
 MOCK_PHONE = "+14155550100"

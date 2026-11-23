@@ -42,7 +42,7 @@ from app.services import risk, verify
 from app.services.injection import _NO_FORCED_TOOL_CHOICE
 from app.services.vendors import latest_identity_map, mask_phone
 
-log = logging.getLogger("countersign.ask")
+log = logging.getLogger("jenny.ask")
 router = APIRouter()
 
 DEADLINE_SECONDS = 4.5  # /ask answers in under 5 s; past this the template answer is returned instead

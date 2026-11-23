@@ -277,7 +277,7 @@ def test_backstop_refuses_a_destination_that_is_not_the_last_verified_account(en
     real = payments.create_transfer
 
     async def spy(dest, amount, description):
-        sent.append(description.rsplit(" ", 1)[-1])  # "Countersign payment pay_xxx"
+        sent.append(description.rsplit(" ", 1)[-1])  # "Jenny payment pay_xxx"
         return await real(dest, amount, description)
 
     monkeypatch.setattr(payments, "create_transfer", spy)

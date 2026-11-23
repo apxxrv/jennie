@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
 
-// A signature that ends in a check, written on a signature line: the payment, countersigned. Ink-blue tile, accent-ink stroke,
+// A signature that ends in a check, written on a signature line: the payment, jennyed. Ink-blue tile, accent-ink stroke,
 // so it reads in both themes. Legible down to 16px.
-export function CountersignMark({ className }: { className?: string }) {
+export function JennyMark({ className }: { className?: string }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden className={cn("size-5 shrink-0", className)}>
       <rect x="1" y="1" width="22" height="22" rx="5.5" className="fill-accent" />

@@ -10,9 +10,9 @@ Before an accounts payable team calls a vendor to confirm a bank change, the Act
 
 It reads only the host and folder of the `website_url`, obeys `robots.txt`, never follows links to other hosts or to a neighbour's folder, and ignores numbers in scripts, forms and hidden elements.
 
-## What it does in Countersign
+## What it does in Jenny
 
-Countersign's core rule is that money never goes to a new destination without proof from outside the channel that asked for it. The verification call is that proof, and it only works if the number we dial does not come from the email asking for the change (the scammer's email will carry the scammer's number).
+Jenny's core rule is that money never goes to a new destination without proof from outside the channel that asked for it. The verification call is that proof, and it only works if the number we dial does not come from the email asking for the change (the scammer's email will carry the scammer's number).
 
 The Actor is the independent-number step of every verification call (`MOCK_APIFY=false`):
 

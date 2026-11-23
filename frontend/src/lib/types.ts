@@ -725,17 +725,17 @@ export interface RedTeamResults {
     family: RedTeamFamily;
     attacks: number;
     caught_baseline: number;
-    caught_countersign: number;
+    caught_jenny: number;
     /** Clean invoices mixed into this family's batch, and how many each agent held or blocked anyway. */
     clean_invoices: number;
     false_positives_baseline: number;
-    false_positives_countersign: number;
+    false_positives_jenny: number;
     /** Paid to an account the attacker controls. A miss that pays the real vendor's verified account is not counted. */
     lost_to_scammers_usd_baseline: number;
-    lost_to_scammers_usd_countersign: number;
+    lost_to_scammers_usd_jenny: number;
   }[];
-  legit_changes: { total: number; handled_countersign: number };
-  median_run_seconds: { baseline: number; countersign: number };
+  legit_changes: { total: number; handled_jenny: number };
+  median_run_seconds: { baseline: number; jenny: number };
 }
 
 /**

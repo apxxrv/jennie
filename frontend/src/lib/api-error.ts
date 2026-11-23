@@ -40,7 +40,7 @@ export function detailText(data: unknown): string | null {
 
 /** What to show for a status with no readable detail. */
 export function statusText(status: number): string {
-  if (status === 0) return "Can't reach the Countersign server";
+  if (status === 0) return "Can't reach the Jenny server";
   if (status === 404) return "Not found";
   if (status === 409) return "That conflicts with something already in progress";
   if (status === 422) return "The server did not accept that input";

@@ -22,7 +22,7 @@ import type { AttackCard, LaunchAttackRequest } from "@/lib/types";
 // The attack console. Judges arrive with no instructions: pick a card, edit if they like, launch. This page never says
 // whether an attack worked; it sends the judge to their payment, where each step plays out live.
 
-const NAME_KEY = "countersign-attacker-name";
+const NAME_KEY = "jenny-attacker-name";
 
 function readName() {
   try {
@@ -92,7 +92,7 @@ function AttackScreen() {
     <>
       <PageHeader
         title="Try to rob us."
-        description="Pick an attack or write your own. Countersign will process it in this week's payment run."
+        description="Pick an attack or write your own. Jenny will process it in this week's payment run."
       />
       <div className="max-w-[1120px] px-4 py-6 sm:px-6">
         <form onSubmit={submit} className="space-y-8" noValidate>

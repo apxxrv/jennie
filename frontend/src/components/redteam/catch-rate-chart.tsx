@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, LabelList, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { RedTeamFamily } from "@/lib/types";
 
-// Catch rate per attack family, baseline agent against Countersign. Baseline in muted ink, Countersign in accent (the
+// Catch rate per attack family, baseline agent against Jenny. Baseline in muted ink, Jenny in accent (the
 // emphasis pair DESIGN.md asks for; the dataviz validator passes it on CVD and normal-vision separation). Identity never
 // rests on color alone: an inline legend above the plot and the rate printed on every bar. Axes are labeled in place.
 
@@ -10,10 +10,10 @@ export interface CatchRateDatum {
   family: RedTeamFamily;
   label: string;
   baseline: number; // 0 to 100
-  countersign: number;
+  jenny: number;
   attacks: number;
   caughtBaseline: number;
-  caughtCountersign: number;
+  caughtJenny: number;
 }
 
 /** Recharts writes colors into SVG attributes, so resolve the theme tokens to values once mounted. */
@@ -36,7 +36,7 @@ export function CatchRateChart({ data }: { data: CatchRateDatum[] }) {
       <figcaption className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm">
         <span className="font-medium">Catch rate by attack family</span>
         <Key color="bg-ink-muted" label="Baseline agent" />
-        <Key color="bg-accent" label="Countersign" />
+        <Key color="bg-accent" label="Jenny" />
       </figcaption>
       <div className="mt-3 h-72">
         <ResponsiveContainer width="100%" height="100%">
@@ -57,8 +57,8 @@ export function CatchRateChart({ data }: { data: CatchRateDatum[] }) {
             <Bar dataKey="baseline" name="Baseline agent" fill={t.base} radius={[0, 0, 0, 0]} isAnimationActive={false}>
               <LabelList dataKey="baseline" position="top" formatter={(v) => pct(Number(v))} fill={t.muted} fontSize={12} fontFamily="IBM Plex Mono" />
             </Bar>
-            <Bar dataKey="countersign" name="Countersign" fill={t.accent} radius={[0, 0, 0, 0]} isAnimationActive={false}>
-              <LabelList dataKey="countersign" position="top" formatter={(v) => pct(Number(v))} fill={t.ink} fontSize={12} fontFamily="IBM Plex Mono" />
+            <Bar dataKey="jenny" name="Jenny" fill={t.accent} radius={[0, 0, 0, 0]} isAnimationActive={false}>
+              <LabelList dataKey="jenny" position="top" formatter={(v) => pct(Number(v))} fill={t.ink} fontSize={12} fontFamily="IBM Plex Mono" />
             </Bar>
           </BarChart>
         </ResponsiveContainer>
@@ -87,7 +87,7 @@ function Tip({ active, payload }: { active?: boolean; payload?: readonly { paylo
         Baseline agent <span className="figure text-ink">{d.caughtBaseline}</span> of <span className="figure">{d.attacks}</span>
       </p>
       <p className="text-ink-muted">
-        Countersign <span className="figure text-ink">{d.caughtCountersign}</span> of <span className="figure">{d.attacks}</span>
+        Jenny <span className="figure text-ink">{d.caughtJenny}</span> of <span className="figure">{d.attacks}</span>
       </p>
     </div>
   );

@@ -24,7 +24,7 @@ anything other than letters and digits turned into `-`. `email_domain` is unchan
 | `sites/index.html` | a list of every site |
 | `sites/.nojekyll` | stops GitHub Pages from running Jekyll |
 
-Every page carries "Fictional company created for the Countersign hackathon demo."
+Every page carries "Fictional company created for the Jenny hackathon demo."
 
 Phones: Summit Concrete shows its on-file number, which is `DEMO_VENDOR_PHONE` when set (otherwise the fictional `+14155550100`).
 Every other vendor shows its on-file `+1415555xxxx` number. The generator refuses to write a number that is not a 555 number, because
@@ -51,7 +51,7 @@ GitHub Actions. Nothing is published until you do these steps:
 
 If the repository or account name differs, set `PAGES_BASE_URL` to the real base URL, run `python seed/seed.py` and `python -m seed.sites`, and push again.
 
-`robots.txt` allows everything. On a project site it lives under `/Countersign/`, not at the host root, so crawlers that only read
+`robots.txt` allows everything. On a project site it lives under `/Jenny/`, not at the host root, so crawlers that only read
 `https://aayushswami123.github.io/robots.txt` will not see it; Apify's crawlers allow crawling unless a robots.txt they read says no.
 
 ## Tests

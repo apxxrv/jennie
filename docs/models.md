@@ -1,4 +1,4 @@
-# Countersign data model
+# Jenny data model
 
 Source: `backend/app/models.py` (SQLModel). This is the reference for the seed script and the risk engine.
 
@@ -183,7 +183,7 @@ Where a PDF finding sits: the box is the union of the flagged characters on the 
 | result | AttackResult, null | null until scored |
 | created_at | datetime | |
 | moderation_status | ModerationStatus | default pending. The leaderboard shows the row for pending and approved, but the attack text only when approved; hidden rows are left out |
-| detail_json | JSON, null | not in the spec. What the leaderboard shows, kept on the row so it survives a reset that keeps the leaderboard: subject, from_addr, body, has_pdf, amount_usd, outcome, reasons, paid_usd. A database created before this column existed must be recreated (delete `countersign.db` and re-seed) |
+| detail_json | JSON, null | not in the spec. What the leaderboard shows, kept on the row so it survives a reset that keeps the leaderboard: subject, from_addr, body, has_pdf, amount_usd, outcome, reasons, paid_usd. A database created before this column existed must be recreated (delete `jenny.db` and re-seed) |
 
 ### audit_log (`aud_`)
 

@@ -14,7 +14,7 @@ from app.config import get_settings
 from app.models import AuditLog, CallOutcome, Invoice, Payment, PaymentStatus, Vendor, VerificationCall
 from app.services import identity, payments, verify, voice
 
-log = logging.getLogger("countersign.integrations")
+log = logging.getLogger("jenny.integrations")
 
 voice_router = APIRouter(prefix="/voice")
 webhook_router = APIRouter(prefix="/webhooks/twilio")
@@ -22,8 +22,8 @@ verification_router = APIRouter(prefix="/verifications")
 router = APIRouter()  # main.py includes this one; it carries all three
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
-SMOKE_SENTENCE = "This is Countersign. Custom TwiML from our own server is working."
-SMOKE_CLIP_TEXT = "This is a Countersign voice clip."
+SMOKE_SENTENCE = "This is Jenny. Custom TwiML from our own server is working."
+SMOKE_CLIP_TEXT = "This is a Jenny voice clip."
 
 
 def integration_status() -> dict:

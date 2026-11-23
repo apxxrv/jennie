@@ -19,7 +19,7 @@ from app.audit import write_audit
 from app.models import Invoice, Message, Payment, PaymentRun, RunStatus
 from app.services import ask, report, run
 
-log = logging.getLogger("countersign.late")
+log = logging.getLogger("jenny.late")
 
 
 async def after_outcome(payment_id: str) -> None:

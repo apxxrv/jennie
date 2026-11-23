@@ -37,7 +37,7 @@ from app.config import get_settings
 from app.services import liveness
 from app.models import Vendor, utcnow
 
-log = logging.getLogger("countersign.identity")
+log = logging.getLogger("jenny.identity")
 
 CRS_BASE_URL = "https://api-sandbox.stitchcredit.com:443/api"
 REQUEST_TIMEOUT_SECONDS = 8

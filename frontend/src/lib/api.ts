@@ -29,7 +29,7 @@ import type {
 } from "@/lib/types";
 
 export { API_URL };
-/** The Rob Countersign bounty inbox, or "" until the organizers approve advertising it. */
+/** The Rob Jenny bounty inbox, or "" until the organizers approve advertising it. */
 export const BOUNTY_EMAIL = (import.meta.env.VITE_BOUNTY_EMAIL ?? "").trim();
 
 type Method = "GET" | "POST";

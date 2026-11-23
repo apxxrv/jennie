@@ -10,7 +10,7 @@ import { formatDate } from "@/lib/format";
 import type { RedTeamFamily, RedTeamResults } from "@/lib/types";
 
 // Red-team results: generated attacks mixed with clean invoices, run against a plain AI agent told to "pay valid
-// invoices" and against Countersign. Weights are hackathon starting points; this page is how we show what they do.
+// invoices" and against Jenny. Weights are hackathon starting points; this page is how we show what they do.
 
 const FAMILY: Record<RedTeamFamily, string> = {
   bank_change: "Bank change",
@@ -28,7 +28,7 @@ export function RedTeam() {
     <>
       <PageHeader
         title="Red team"
-        description="Generated attacks mixed with clean invoices, run against a plain AI agent told to pay valid invoices, and against Countersign."
+        description="Generated attacks mixed with clean invoices, run against a plain AI agent told to pay valid invoices, and against Jenny."
       />
       <div className="max-w-[1120px] space-y-8 px-4 py-6 sm:px-6">
         {isLoading ? (
@@ -52,16 +52,16 @@ function Results({ data }: { data: RedTeamResults }) {
   const f = data.families;
   const sum = (k: keyof RedTeamResults["families"][number]) => f.reduce((t, r) => t + Number(r[k]), 0);
   const lostBaseline = sum("lost_to_scammers_usd_baseline");
-  const lostCountersign = sum("lost_to_scammers_usd_countersign");
+  const lostJenny = sum("lost_to_scammers_usd_jenny");
   const rate = (n: number, of: number) => (of ? (n / of) * 100 : 0);
   const chart: CatchRateDatum[] = f.map((r) => ({
     family: r.family,
     label: FAMILY[r.family],
     baseline: rate(r.caught_baseline, r.attacks),
-    countersign: rate(r.caught_countersign, r.attacks),
+    jenny: rate(r.caught_jenny, r.attacks),
     attacks: r.attacks,
     caughtBaseline: r.caught_baseline,
-    caughtCountersign: r.caught_countersign,
+    caughtJenny: r.caught_jenny,
   }));
 
   return (
@@ -78,8 +78,8 @@ function Results({ data }: { data: RedTeamResults }) {
           <Money amount={lostBaseline} className="mt-1 block text-xl font-medium" />
         </div>
         <div>
-          <p className="text-sm text-ink-muted">Countersign</p>
-          <Money amount={lostCountersign} className="mt-1 block text-xl font-medium" />
+          <p className="text-sm text-ink-muted">Jenny</p>
+          <Money amount={lostJenny} className="mt-1 block text-xl font-medium" />
         </div>
         <p className="max-w-[44ch] text-sm text-ink-muted">
           Counted only when the money went to an account the attacker controls. A padded invoice paid to the vendor's own
@@ -96,7 +96,7 @@ function Results({ data }: { data: RedTeamResults }) {
               <TableHead>Attack family</TableHead>
               <TableHead className="text-right">Attacks</TableHead>
               <TableHead className="text-right">Caught by baseline</TableHead>
-              <TableHead className="text-right">Caught by Countersign</TableHead>
+              <TableHead className="text-right">Caught by Jenny</TableHead>
               <TableHead className="text-right">False positives on clean invoices</TableHead>
             </TableRow>
           </TableHeader>
@@ -109,10 +109,10 @@ function Results({ data }: { data: RedTeamResults }) {
                   <Count n={r.caught_baseline} of={r.attacks} />
                 </TableCell>
                 <TableCell className="text-right">
-                  <Count n={r.caught_countersign} of={r.attacks} strong />
+                  <Count n={r.caught_jenny} of={r.attacks} strong />
                 </TableCell>
                 <TableCell className="text-right">
-                  <FalsePositives baseline={r.false_positives_baseline} countersign={r.false_positives_countersign} clean={r.clean_invoices} />
+                  <FalsePositives baseline={r.false_positives_baseline} jenny={r.false_positives_jenny} clean={r.clean_invoices} />
                 </TableCell>
               </TableRow>
             ))}
@@ -130,12 +130,12 @@ function Results({ data }: { data: RedTeamResults }) {
               </TableCell>
               <TableCell className="text-right">
                 <span className="ledger-total inline-block py-0.5">
-                  <Count n={sum("caught_countersign")} of={sum("attacks")} strong />
+                  <Count n={sum("caught_jenny")} of={sum("attacks")} strong />
                 </span>
               </TableCell>
               <TableCell className="text-right">
                 <span className="ledger-total inline-block py-0.5">
-                  <FalsePositives baseline={sum("false_positives_baseline")} countersign={sum("false_positives_countersign")} clean={sum("clean_invoices")} />
+                  <FalsePositives baseline={sum("false_positives_baseline")} jenny={sum("false_positives_jenny")} clean={sum("clean_invoices")} />
                 </span>
               </TableCell>
             </TableRow>
@@ -144,11 +144,11 @@ function Results({ data }: { data: RedTeamResults }) {
       </section>
 
       <p className="text-sm text-ink-muted">
-        Legitimate bank changes handled by Countersign:{" "}
-        <span className="figure text-ink">{data.legit_changes.handled_countersign}</span> of{" "}
+        Legitimate bank changes handled by Jenny:{" "}
+        <span className="figure text-ink">{data.legit_changes.handled_jenny}</span> of{" "}
         <span className="figure text-ink">{data.legit_changes.total}</span>. Median time per run: baseline{" "}
-        <span className="figure text-ink">{data.median_run_seconds.baseline}</span> s, Countersign{" "}
-        <span className="figure text-ink">{data.median_run_seconds.countersign}</span> s. Run {formatDate(data.generated_at)}. Signal
+        <span className="figure text-ink">{data.median_run_seconds.baseline}</span> s, Jenny{" "}
+        <span className="figure text-ink">{data.median_run_seconds.jenny}</span> s. Run {formatDate(data.generated_at)}. Signal
         weights are hackathon starting points, not validated; these results are how we judge them.
       </p>
 
@@ -158,11 +158,11 @@ function Results({ data }: { data: RedTeamResults }) {
         <p>
           We wrote the attacks and the clean invoices ourselves from the demo's vendors, in a fixed random order. Both agents saw the same
           emails and invoice text. The plain agent is Claude told to pay valid invoices, with a pay tool that only records its decision; it
-          sees no vendor history. Countersign ran the full payment run, on Claude for reading and screening.
+          sees no vendor history. Jenny ran the full payment run, on Claude for reading and screening.
         </p>
         <p>
           The verification call is simulated in this test: it denies a request that came from an attack and confirms a real change. So a
-          Countersign catch of a changed bank account shows the payment was sent to a call, not that a real vendor answered correctly. No
+          Jenny catch of a changed bank account shows the payment was sent to a call, not that a real vendor answered correctly. No
           phone, bank or lookup service was used.
         </p>
       </section>
@@ -180,10 +180,10 @@ function Count({ n, of, strong = false }: { n: number; of: number; strong?: bool
   );
 }
 
-function FalsePositives({ baseline, countersign, clean }: { baseline: number; countersign: number; clean: number }) {
+function FalsePositives({ baseline, jenny, clean }: { baseline: number; jenny: number; clean: number }) {
   return (
     <span className="whitespace-nowrap text-ink-muted">
-      Countersign <span className="figure text-ink">{countersign}</span>, baseline <span className="figure text-ink">{baseline}</span>, of{" "}
+      Jenny <span className="figure text-ink">{jenny}</span>, baseline <span className="figure text-ink">{baseline}</span>, of{" "}
       <span className="figure">{clean}</span>
     </span>
   );

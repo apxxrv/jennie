@@ -20,7 +20,7 @@ def test_health():
 
 def test_cors_allows_localhost_and_frontend_url():
     with TestClient(app) as client:
-        for origin in ("http://localhost:5173", "https://countersign.example"):
+        for origin in ("http://localhost:5173", "https://jenny.example"):
             r = client.get("/api/health", headers={"Origin": origin})
             assert r.headers["access-control-allow-origin"] == origin
         r = client.get("/api/health", headers={"Origin": "https://evil.example"})
