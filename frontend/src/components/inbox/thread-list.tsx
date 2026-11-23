@@ -60,7 +60,7 @@ export function ThreadList({
                   {det && (
                     <span className="inline-flex items-center gap-1" title={det.reviewed ? `${det.reason}. Reviewed by ${det.reviewed.by}.` : det.reason}>
                       <ShieldAlert {...iconProps} size={14} className="text-blocked-ink" />
-                      <span className="font-medium text-blocked-ink">Attack</span>
+                      <span className="font-medium text-blocked-ink">Flagged by Jenny</span>
                       {det.reviewed && <span className="text-ink-muted">reviewed</span>}
                     </span>
                   )}

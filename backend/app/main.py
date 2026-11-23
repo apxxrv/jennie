@@ -10,7 +10,7 @@ from app import dev, events, integrations, mcp_server
 from app.config import get_settings
 from app.db import create_all, get_session, is_postgres
 from app.redteam import api as redteam_api
-from app.services import ask, attacks, bounty, contacts, ingest, report, reset, review, run, status, vendors
+from app.services import jenny_voice, ask, attacks, bounty, contacts, ingest, report, reset, review, run, status, vendors
 
 
 @asynccontextmanager
@@ -52,6 +52,7 @@ def health(session: Session = Depends(get_session)) -> dict:
     }
 
 
+api.include_router(jenny_voice.router)
 api.include_router(events.router)
 api.include_router(ingest.router)
 api.include_router(run.router)

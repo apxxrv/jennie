@@ -20,7 +20,7 @@ export function AppShell() {
 
   return (
     <RunProvider>
-      <div className="flex min-h-[calc(100vh/var(--present-zoom))] bg-paper text-ink">
+      <div className="dashboard-shell flex min-h-[calc(100vh/var(--present-zoom))] bg-paper text-ink">
         {!presenting && <Sidebar />}
         <div className="flex min-w-0 flex-1 flex-col">
           <TopBar

@@ -1,38 +1,22 @@
 import { useMemo, useState } from "react";
-import { Outlet } from "react-router-dom";
+import { Link, Outlet } from "react-router-dom";
 import { Play } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { JennyInbox } from "@/components/board/jenny-inbox";
 import { ActivityRail } from "@/components/board/activity-rail";
-import { PaymentTable } from "@/components/board/payment-table";
+import { formatUSD } from "@/lib/format";
 import { PinnedAttack } from "@/components/board/pinned-attack";
 import { RunHeader } from "@/components/board/run-header";
 import { iconProps } from "@/components/shared/icon";
 import { useCurrentRun } from "@/components/shared/run-context";
 import { errorMessage } from "@/lib/api-error";
-import { foldBoard, type BoardRow } from "@/lib/board";
+import { foldBoard } from "@/lib/board";
 import { foldCalls } from "@/lib/calls";
-
-type Filter = "all" | "attention" | "paid" | "blocked";
-
-const FILTERS: { value: Filter; label: string; test: (r: BoardRow) => boolean; empty: string }[] = [
-  { value: "all", label: "All", test: () => true, empty: "No invoices read yet." },
-  {
-    value: "attention",
-    label: "Needs attention",
-    // Held for Dev, or a verification call still in progress.
-    test: (r) => r.status === "held" || r.stage === "calling",
-    empty: "Nothing needs attention. Held payments and live verification calls show here.",
-  },
-  { value: "paid", label: "Paid", test: (r) => r.status === "paid", empty: "No payments released yet." },
-  { value: "blocked", label: "Blocked", test: (r) => r.status === "blocked", empty: "No payments blocked in this run." },
-];
 
 export function Board() {
   const { runId, events, summary, startRun, runFailed, pinned, pinnedEvents, unpin } = useCurrentRun();
   const [starting, setStarting] = useState(false);
-  const [filter, setFilter] = useState<Filter>("all");
   const board = useMemo(() => foldBoard(events), [events]);
   const attack = useMemo(() => foldBoard(pinnedEvents, { attack: true }), [pinnedEvents]);
   const calls = useMemo(() => [...foldCalls(pinnedEvents), ...foldCalls(events)], [events, pinnedEvents]);
@@ -42,13 +26,11 @@ export function Board() {
     [board.activity, attack.activity],
   );
   const running = Boolean(runId) && !summary.completed && !runFailed;
-  const loading = Boolean(runId) && !runFailed && board.rows.length === 0;
 
   async function start() {
     setStarting(true);
     try {
       await startRun();
-      setFilter("all");
     } catch (err) {
       toast.error("Payment run not started", { description: errorMessage(err) });
     } finally {
@@ -56,11 +38,21 @@ export function Board() {
     }
   }
 
-  const active = FILTERS.find((f) => f.value === filter)!;
-  const rows = board.rows.filter(active.test);
+  const attention = board.rows.filter(row => row.status === "held" || row.stage === "calling");
 
   return (
-    <div className="flex flex-col lg:h-[calc(100dvh/var(--present-zoom)-3rem)]">
+    <div className="payment-board flex flex-col lg:h-[calc(100dvh/var(--present-zoom)-3rem)]">
+
+
+      {runId || pinned ? <>
+        {pinned && <PinnedAttack pinned={pinned} events={pinnedEvents} rows={attack.rows} onUnpin={unpin} />}
+
+        <JennyInbox />
+        {runId && <details className="review-queue-details"><summary>{attention.length} payment{attention.length === 1 ? "" : "s"} waiting for your decision</summary><section className="decision-queue"><div className="queue-heading"><div><h2>{attention.length ? "A quick decision from you." : "You’re all caught up."}</h2><p>{attention.length ? "These payments are on hold. Open a request to review the evidence." : running ? "We’ll bring anything unusual here as we check your invoices." : "No payments are waiting for your approval."}</p></div><span className="queue-count">{attention.length} to review</span></div>{attention.map(row=><Link className="review-request" key={row.paymentId} to={`/payments/${row.paymentId}`}><span className="request-avatar">{row.vendor[0]}</span><div><strong>{row.vendor}</strong><p>{row.stage === "calling" ? "Calling the verified vendor contact" : row.callOutcome === "unclear" ? "Vendor’s answer was unclear. Your review is needed." : row.reason || "Payment details need a second look."}</p></div><span className="request-amount">{formatUSD(row.amount)}</span><span className="review-request-action">Review request</span></Link>)}</section></details>}
+        <details className="workspace-audit"><summary>Verification calls & activity log <span>{calls.length} calls · {activity.length} events</span></summary><ActivityRail entries={activity} calls={calls} hasRun /></details>
+      </> : <><StartPrompt starting={starting} onStart={start} /><JennyInbox /></>}
+
+      <details className="workspace-run-settings"><summary>Payment overview & invoice review</summary>
       <RunHeader
         rows={board.rows}
         invoiceCount={board.invoiceCount}
@@ -70,36 +62,7 @@ export function Board() {
         starting={starting}
         onStart={start}
       />
-
-      {runId || pinned ? (
-        <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-          <section aria-label="Payments" className="flex min-h-0 min-w-0 flex-1 flex-col bg-surface">
-            {pinned && <PinnedAttack pinned={pinned} events={pinnedEvents} rows={attack.rows} onUnpin={unpin} />}
-            {runId ? (
-              <>
-                <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)}>
-                  <TabsList className="overflow-x-auto px-4 sm:px-6">
-                    {FILTERS.map((f) => (
-                      <TabsTrigger key={f.value} value={f.value}>
-                        {f.label}
-                        <span className="figure text-sm font-normal text-ink-muted">{board.rows.filter(f.test).length}</span>
-                      </TabsTrigger>
-                    ))}
-                  </TabsList>
-                </Tabs>
-                <div className="min-h-0 flex-1">
-                  <PaymentTable rows={rows} loading={loading} emptyText={active.empty} />
-                </div>
-              </>
-            ) : (
-              <StartPrompt starting={starting} onStart={start} />
-            )}
-          </section>
-          <ActivityRail entries={activity} calls={calls} hasRun />
-        </div>
-      ) : (
-        <StartPrompt starting={starting} onStart={start} />
-      )}
+      </details>
 
       {/* Payment detail drawer renders here at /payments/:paymentId. */}
       <Outlet />
@@ -109,12 +72,16 @@ export function Board() {
 
 function StartPrompt({ starting, onStart }: { starting: boolean; onStart: () => void }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-8 sm:px-6">
-      <p className="text-base">This week's 40 open invoices for Ridgeline Builders are ready to pay.</p>
+    <div className="dashboard-start">
+      <div className="start-emblem"><Play size={24} /></div>
+      <span className="eyebrow">READY WHEN YOU ARE</span>
+      <h2>A good day to pay with confidence.</h2>
+      <p className="text-base">40 invoices are ready for review. We’ll check the details and verify suspicious changes before any payment is released.</p>
       <Button variant="primary" onClick={onStart} disabled={starting}>
         <Play {...iconProps} />
         {starting ? "Starting run…" : "Start payment run"}
       </Button>
+      <div className="dashboard-assurances"><span>Invoice checks</span><span>Vendor verification</span><span>Complete audit trail</span></div>
     </div>
   );
 }

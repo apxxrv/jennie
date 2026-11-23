@@ -22,6 +22,7 @@ export default defineConfig({
             { name: "motion", test: /node_modules[\\/](framer-motion|motion-dom|motion-utils)[\\/]/ },
             { name: "radix", test: /node_modules[\\/](radix-ui|@radix-ui|cmdk|sonner)[\\/]/ },
             { name: "react", test: /node_modules[\\/](react|react-dom|react-router|react-router-dom|scheduler|@tanstack)[\\/]/ },
+            { name: "three", test: /node_modules[\\/](@types[\\/]three|three)[\\/]/ },
             { name: "vendor", test: /node_modules[\\/]/ },
           ],
         },

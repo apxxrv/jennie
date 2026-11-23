@@ -59,7 +59,7 @@ export function DemoShortcuts({
   act.current = (action) => {
     switch (action) {
       case "start":
-        navigate("/");
+        navigate("/dashboard");
         if (running || starting.current) {
           toast("The payment run is already in progress");
           return;

@@ -196,3 +196,19 @@ lucide-react only. 16px, stroke 1.75: `<Phone {...iconProps} />`. Icons sit besi
 - Visible keyboard focus: 2px accent outline, 2px offset (global).
 - Text contrast meets WCAG AA in both themes. Status never relies on color alone.
 - Every screen works at 390px wide with no horizontal page scroll; wide tables scroll inside their own container.
+
+
+## November 2026 refresh
+Marketing: mountain blue, Georgia display type, interactive illustrative phone calls. Dashboard: Arial, navy navigation, white panels. Tokens in src/styles/redesign.css: paper #f5f7fb, ink #182539, muted #647187, rule #e2e8f0, accent #2463d5. Homepage at /; payment overview at /dashboard; original payment deep links retained.
+
+## Payment desk refinement
+Use text-only Countersign wordmarks. Dusk blue workspace with translucent summary panels and white decision surfaces, inspired by the provided creator studio reference. Order information by: review queue, protected funds, safely paid, progress, searchable payment ledger, expandable audit history. Marketing call story uses two scroll-selected stages, a cropped phone, glossy transcript bubbles, and six bundled synthetic voice clips. Audio begins only on user interaction.
+
+## Jenny and the email workspace
+Jenny is the named automated verification assistant: careful, direct, and transparent about uncertainty. The main dashboard is a white email inbox with readable sender/subject text, search, pagination, local starred state, and evidence-backed Flagged by Jenny labels from useDetections. Homepage has poster-grain texture, a reduced-motion-aware scam shimmer, scroll-synchronized dialogue, and generated neural demo audio. The provided WaterCard is used as a verified-account illustration, without collecting card details. The supplied FuzzyCritterFooter is branded to Countersign and loaded near the footer. Styles live in src/styles/jenny.css.
+
+## Run Jenny interaction
+Jenny uses the supplied pink fuzzy character. The main payment inbox has compact Gmail-style rows and solid red detected flags. Run Jenny opens an accessible translucent phone dialog with two explicit verification examples, automatic audio playback, vendor selection, transcript turns, pause, and cleanup on close. It does not dial or modify payments. Optional ElevenLabs speech is served by /api/jenny/voice when ELEVENLABS_API_KEY and ELEVENLABS_VOICE_ID are configured; otherwise bundled neural demo audio is used and labeled.
+
+## Full Jenny character and Jonathan
+JennyAvatar renders the complete pink flower from the supplied 3D character source in portrait mode; no screenshot crop is used. Owner briefing uses the user-supplied Jonathan photo and matching regenerated audio. Inbox categories include Primary, Flagged by Jenny, Starred, and Invoices; colored sidebar labels open the matching filters.

@@ -35,7 +35,7 @@ export function TopBar({
     try {
       await api.resetDemo(true);
       forgetAfterReset();
-      navigate("/");
+      navigate("/dashboard");
       setPresenting(true);
       toast.success("Demo reset", { description: "Presenting. The leaderboard was kept. Press F to leave presentation mode." });
     } catch (err) {
@@ -48,7 +48,7 @@ export function TopBar({
       {/* On a phone the live run line matters more than the company name, which the board already shows. */}
       <span className="hidden shrink-0 font-medium sm:inline">Ridgeline Builders</span>
       <span aria-hidden className="hidden h-4 w-px shrink-0 bg-rule-strong sm:block" />
-      <RunStatus />
+      <div className="topbar-run-status"><RunStatus /></div>
 
       {presenting && <PresentationNav />}
 
@@ -137,7 +137,7 @@ function RunStatus() {
 /** With the sidebar hidden, the screens a judge needs stay one click away. No developer controls here. */
 function PresentationNav() {
   const nav = useVisibleNav();
-  const items = nav.filter((n) => ["/", "/attack", "/leaderboard", "/red-team", "/status"].includes(n.to));
+  const items = nav.filter((n) => ["/dashboard", "/attack", "/leaderboard", "/red-team", "/status"].includes(n.to));
   return (
     <nav aria-label="Screens" className="ml-4 hidden items-center gap-1 md:flex">
       {items.map((n) =>
