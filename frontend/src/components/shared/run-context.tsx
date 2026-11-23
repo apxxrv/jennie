@@ -27,6 +27,8 @@ interface CurrentRun {
   status: StreamStatus;
   summary: RunSummary;
   startRun: () => Promise<string>;
+  /** Follow a run this tab did not start (one already in progress on the server). */
+  followRun: (runId: string) => void;
   clearRun: () => void;
   /** After a demo reset: forget the run and every cached record. */
   forgetAfterReset: () => void;
@@ -221,6 +223,11 @@ export function RunProvider({ children }: { children: ReactNode }) {
     }
   }, [mode, startRun, setRunId, setPinned]);
 
+  const followRun = useCallback((id: string) => {
+    storeRun(id);
+    setRunId(id);
+  }, [setRunId]);
+
   const pinAttack = useCallback((a: PinnedAttack) => {
     storePinned(a);
     setPinned(a);
@@ -255,8 +262,8 @@ export function RunProvider({ children }: { children: ReactNode }) {
   }, [resets, forgetAfterReset]);
 
   const value = useMemo(
-    () => ({ runId, events, status, summary, startRun, clearRun, forgetAfterReset, runFailed, pinned, pinnedEvents, pinAttack, unpin, allEvents }),
-    [runId, events, status, summary, startRun, clearRun, forgetAfterReset, runFailed, pinned, pinnedEvents, pinAttack, unpin, allEvents],
+    () => ({ runId, events, status, summary, startRun, followRun, clearRun, forgetAfterReset, runFailed, pinned, pinnedEvents, pinAttack, unpin, allEvents }),
+    [runId, events, status, summary, startRun, followRun, clearRun, forgetAfterReset, runFailed, pinned, pinnedEvents, pinAttack, unpin, allEvents],
   );
   return <RunContext.Provider value={value}>{children}</RunContext.Provider>;
 }

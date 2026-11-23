@@ -1,2 +1,2 @@
 Synthetic illustrative conversations. Jenny: en-US-JennyNeural; Sarah: en-US-AriaNeural; Dev: en-US-GuyNeural. Generated using edge-tts at -5% rate. No real calls or recordings. These static assets require no voice-service credentials at runtime.
-Inbox examples are bundled as inbox-0-* (Summit) and inbox-1-* (Northside). ElevenLabs can replace Jenny’s lines after server-side configuration. Vendor replies remain clearly illustrative bundled audio.
+These files are the homepage's illustrative calls only. The inbox's "Run Jenny" view speaks the real call transcript through /api/jenny/voice (AWS Polly, or ElevenLabs when configured) and shows text only when no voice is connected.
