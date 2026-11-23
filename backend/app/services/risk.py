@@ -375,10 +375,9 @@ class _Pressure(BaseModel):
 
 
 def _client():
-    import anthropic
+    from app.services.llm import claude_client
 
-    key = get_settings().anthropic_api_key
-    return anthropic.Anthropic(api_key=key) if key else anthropic.Anthropic()
+    return claude_client()
 
 
 class PressureClassifier:

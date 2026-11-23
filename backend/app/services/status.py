@@ -58,11 +58,13 @@ def system_status(session: Session = Depends(get_session)) -> list[dict]:
     invoices = session.exec(select(func.count()).select_from(Invoice)).one()
     attacks = session.exec(select(func.count()).select_from(Attack).where(Attack.source.in_([AttackSource.console, AttackSource.judge, AttackSource.bounty_email]))).one()
     rows = [
-        _row("Claude extraction", s.mock_claude, f"{s.claude_model_main} fills a fixed schema", "Canned extraction", key="claude"),
+        _row("Claude extraction", s.mock_claude, f"{s.claude_model_main} fills a fixed schema" + (" (through AWS Bedrock)" if s.claude_provider == "bedrock" else ""),
+             "Canned extraction", key="claude"),
         _row("Risk engine", s.mock_risk, "Hard rules and weighted score, running live", "Mock risk assessor", key="risk"),
         _row("Injection defense", s.mock_injection, "Hidden-content scan and instruction classifier, running live", "Mock injection scanner", key="injection"),
         _row("Verification call (Twilio)", s.mock_twilio, "Real call to an allow-listed number, for console, judge and bounty attacks", "Scripted call, no phone", key="twilio"),
-        _row("Call voice (Cartesia)", s.mock_cartesia, "Cartesia text to speech", "No synthesized voice", key="cartesia"),
+        _row("Call voice (Polly)" if s.tts_provider == "polly" else "Call voice (Cartesia)", s.mock_cartesia,
+             "AWS Polly text to speech" if s.tts_provider == "polly" else "Cartesia text to speech", "No synthesized voice", key="cartesia"),
         _apify_row(s),
         _row("Vendor identity (CRS)", s.mock_crs, "CRS sandbox, provided test identities", "Mock identity check", real_mode="sandboxed", key="crs"),
         _nessie_row(s, session),

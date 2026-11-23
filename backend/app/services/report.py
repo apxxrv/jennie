@@ -229,11 +229,9 @@ TOOL = {
 
 def _call_claude(model: str, facts: dict) -> Optional[dict]:
     """One short call. None on any failure (the caller falls back to the basic report)."""
-    import anthropic
+    from app.services.llm import claude_client
 
-    key = get_settings().anthropic_api_key
-    kw = {"timeout": DEADLINE_SECONDS - 0.5, "max_retries": 0}
-    client = anthropic.Anthropic(api_key=key, **kw) if key else anthropic.Anthropic(**kw)
+    client = claude_client(timeout=DEADLINE_SECONDS - 0.5, max_retries=0)
     user = f"<run_data>\n{json.dumps(facts, indent=1, sort_keys=True)}\n</run_data>\n\nCall write_report for this run."
     forced = not any(tag in model for tag in _NO_FORCED_TOOL_CHOICE)
     choices = ([{"type": "tool", "name": TOOL["name"]}] if forced else []) + [{"type": "auto"}]
@@ -344,7 +342,7 @@ def _cache_put(key: str, value: dict) -> None:
 async def claude_report(facts: dict) -> tuple:
     """(sections, model, fallback_reason). sections is None when the basic report must be used."""
     settings = get_settings()
-    if settings.mock_claude or not settings.anthropic_api_key:
+    if settings.mock_claude or not settings.claude_ready:
         return None, None, "claude_off"
     model = settings.claude_model_main
     key = _key(model, facts)

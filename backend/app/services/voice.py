@@ -37,7 +37,7 @@ CARTESIA_MODEL = "sonic-3.6"
 
 
 PLACE_CALL_TIMEOUT_SECONDS = 15  # hard cap around the Twilio call create
-HTTP_TIMEOUT_SECONDS = 10  # Twilio REST and Cartesia requests
+HTTP_TIMEOUT_SECONDS = 10  # Twilio REST, Cartesia and Polly requests
 WEB_RING_SECONDS = 60  # a softphone call nobody answers in this long is a no_answer
 VENDOR_PHONE_FRESH_SECONDS = 60  # a softphone page that polled this recently counts as open
 
@@ -207,6 +207,34 @@ def _cartesia_wav(text: str, s: Settings) -> bytes:
     return resp.content
 
 
+_polly_client_cache: dict = {}
+
+
+def _polly_wav(text: str, s: Settings) -> bytes:
+    """AWS Polly (TTS_PROVIDER=polly): raw 16 kHz 16-bit mono PCM, wrapped in a WAV header so Twilio can Play it."""
+    import io
+
+    key = (s.aws_profile, s.aws_region)
+    client = _polly_client_cache.get(key)
+    if client is None:
+        import boto3
+        from botocore.config import Config
+
+        cfg = Config(connect_timeout=HTTP_TIMEOUT_SECONDS, read_timeout=HTTP_TIMEOUT_SECONDS, retries={"max_attempts": 2})
+        client = boto3.Session(profile_name=s.aws_profile or None, region_name=s.aws_region).client("polly", config=cfg)
+        _polly_client_cache[key] = client
+    resp = client.synthesize_speech(Text=text, OutputFormat="pcm", SampleRate=str(SAMPLE_RATE), VoiceId=s.polly_voice_id, Engine=s.polly_engine)
+    with resp["AudioStream"] as stream:
+        pcm = stream.read()
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(SAMPLE_RATE)
+        w.writeframes(pcm)
+    return buf.getvalue()
+
+
 def _generate_clip(text: str, s: Settings) -> Path:
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
     path = AUDIO_DIR / _clip_name(text)
@@ -216,8 +244,8 @@ def _generate_clip(text: str, s: Settings) -> Path:
     if s.mock_cartesia:
         _write_silent_wav(tmp)
     else:
-        tmp.write_bytes(_cartesia_wav(text, s))
-        liveness.mark("cartesia")
+        tmp.write_bytes(_polly_wav(text, s) if s.tts_provider == "polly" else _cartesia_wav(text, s))
+        liveness.mark("cartesia")  # the voice's liveness key, whichever provider made the clip
     tmp.replace(path)
     return path
 

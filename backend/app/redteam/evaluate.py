@@ -93,8 +93,8 @@ def assert_isolated(live: bool) -> None:
             problems.append(f"{name} is set")
     if "unused.db" not in s.database_url:
         problems.append("DATABASE_URL is not the throwaway database")
-    if live and (s.mock_claude or not s.anthropic_api_key):
-        problems.append("a live run needs MOCK_CLAUDE=false and ANTHROPIC_API_KEY")
+    if live and (s.mock_claude or not s.claude_ready):
+        problems.append("a live run needs MOCK_CLAUDE=false and ANTHROPIC_API_KEY (or CLAUDE_PROVIDER=bedrock)")
     if problems:
         raise SystemExit("red team refused to start: " + "; ".join(problems))
 
@@ -255,7 +255,7 @@ class Baseline:
                 args.update(routing_number=att["routing"], account_number=att["account"])
             return {"decision": "paid", "args": args, "text": "", "latency_s": 0.0, "cached": False, "input_tokens": 0, "output_tokens": 0}
         from app.config import get_settings
-        import anthropic
+        from app.services.llm import claude_client
 
         model = get_settings().claude_model_main
         user = baseline_prompt(case)
@@ -268,7 +268,7 @@ class Baseline:
             return {**hit, "cached": True}
         except (OSError, ValueError):
             pass
-        client = anthropic.Anthropic(api_key=get_settings().anthropic_api_key)
+        client = claude_client()
         t0 = time.perf_counter()
         try:
             resp = client.messages.create(  # no forced tool choice (Sonnet 5.5 rejects it); the agent decides whether to call the tool

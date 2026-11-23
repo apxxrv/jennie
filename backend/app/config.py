@@ -1,7 +1,7 @@
 from functools import lru_cache
-from typing import Optional
+from typing import Literal, Optional
 
-from pydantic import field_validator
+from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     claude_model_main: str = "claude-sonnet-5-5"
     claude_model_fast: str = "claude-haiku-5-5"
+    claude_provider: Literal["anthropic", "bedrock"] = "anthropic"  # bedrock: Claude through AWS Bedrock (AWS credentials, no API key)
+    bedrock_inference_prefix: str = "us"  # Bedrock cross-region inference profile prefix: us or global
 
     twilio_account_sid: str = ""
     twilio_auth_token: str = ""
@@ -40,6 +42,9 @@ class Settings(BaseSettings):
 
     cartesia_api_key: str = ""
     cartesia_voice_id: str = ""
+    tts_provider: Literal["cartesia", "polly"] = "cartesia"  # polly: the call voice through AWS Polly (AWS credentials, no Cartesia key)
+    polly_voice_id: str = "Matthew"
+    polly_engine: str = "neural"
     stt_api_key: str = ""
 
     nessie_api_key: str = ""
@@ -47,6 +52,10 @@ class Settings(BaseSettings):
     # The published Vendor Contact Verifier Actor ("<username>/<actor-name>" or its id). See docs/apify.md.
     apify_actor_id: str = "earnest_grill/vendor-contact-verifier"
     crs_api_key: str = ""
+
+    # AWS (Bedrock, Polly). Credentials come from the usual AWS chain; AWS_PROFILE picks a named profile.
+    aws_region: str = "us-east-1"
+    aws_profile: str = ""
 
     database_url: str = "sqlite:///./countersign.db"
 
@@ -100,6 +109,21 @@ class Settings(BaseSettings):
     @classmethod
     def _blank_is_default(cls, v):
         return None if isinstance(v, str) and not v.strip() else v
+
+    @model_validator(mode="after")
+    def _bedrock_model_ids(self) -> "Settings":
+        """On Bedrock a bare model name becomes its inference profile id: claude-sonnet-5-5 -> us.anthropic.claude-sonnet-5-5."""
+        if self.claude_provider == "bedrock":
+            for field in ("claude_model_main", "claude_model_fast"):
+                value = getattr(self, field)
+                if "anthropic." not in value:
+                    setattr(self, field, f"{self.bedrock_inference_prefix}.anthropic.{value}")
+        return self
+
+    @property
+    def claude_ready(self) -> bool:
+        """Claude can be called: Bedrock uses AWS credentials, the Anthropic API needs a key."""
+        return self.claude_provider == "bedrock" or bool(self.anthropic_api_key)
 
     @property
     def call_token_required(self) -> bool:

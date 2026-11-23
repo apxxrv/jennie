@@ -380,12 +380,12 @@ _client_cache: dict = {}
 
 def _client():
     """One client for the process: a new one per question would pay the import and the TLS handshake inside the 5 s budget."""
-    import anthropic
+    from app.services.llm import claude_client
 
-    key = get_settings().anthropic_api_key
+    s = get_settings()
+    key = (s.claude_provider, s.aws_region, s.aws_profile) if s.claude_provider == "bedrock" else (s.claude_provider, s.anthropic_api_key)
     if _client_cache.get("key") != key or "client" not in _client_cache:
-        kw = {"timeout": DEADLINE_SECONDS - 0.5, "max_retries": 0}
-        _client_cache.update(key=key, client=anthropic.Anthropic(api_key=key, **kw) if key else anthropic.Anthropic(**kw))
+        _client_cache.update(key=key, client=claude_client(timeout=DEADLINE_SECONDS - 0.5, max_retries=0))
     return _client_cache["client"]
 
 

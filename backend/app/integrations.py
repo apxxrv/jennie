@@ -32,11 +32,11 @@ def integration_status() -> dict:
     flags = s.mock_flags
     keys = {
         "twilio": bool(s.twilio_account_sid and s.twilio_auth_token and s.twilio_from_number),
-        "cartesia": bool(s.cartesia_api_key and s.cartesia_voice_id),
+        "cartesia": s.tts_provider == "polly" or bool(s.cartesia_api_key and s.cartesia_voice_id),  # Polly uses AWS credentials
         "nessie": bool(s.nessie_api_key),
         "apify": bool(s.apify_token),
         "crs": bool(identity._env("CRS_USERNAME") and identity._env("CRS_PASSWORD")),  # CRS login lives in the environment, not config.py
-        "claude": bool(s.anthropic_api_key),
+        "claude": s.claude_ready,
     }
     return {name: {"mode": "mock" if flags[name] else "real", "key_set": keys[name]} for name in keys}
 
