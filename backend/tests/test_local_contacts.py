@@ -194,3 +194,13 @@ def test_local_lookup_is_ready_without_an_apify_token(monkeypatch):
     assert integration_status()["apify"]["key_set"] is True
     monkeypatch.setattr(s, "contacts_provider", "apify")
     assert integration_status()["apify"]["key_set"] is False
+
+
+def test_status_row_names_the_built_in_crawler_in_local_mode(monkeypatch):
+    from app.services import status
+
+    s = get_settings()
+    monkeypatch.setattr(s, "contacts_provider", "local")
+    assert status._apify_row(s)["name"] == "Vendor phone lookup (built-in crawler)"
+    monkeypatch.setattr(s, "contacts_provider", "apify")
+    assert status._apify_row(s)["name"] == "Vendor phone lookup (Apify)"

@@ -42,12 +42,13 @@ def _apify_row(s) -> dict:
     from app.services import contacts
 
     last_ok = liveness.last("apify")
+    name = "Vendor phone lookup (built-in crawler)" if s.contacts_provider == "local" else "Vendor phone lookup (Apify)"
     if s.mock_apify:
-        return {"name": "Vendor phone lookup (Apify)", "mode": "mock", "detail": "Canned lookup", "last_success_at": None}
+        return {"name": name, "mode": "mock", "detail": "Canned lookup", "last_success_at": None}
     if contacts.health.degraded:
-        return {"name": "Vendor phone lookup (Apify)", "mode": "degraded", "last_success_at": last_ok,
+        return {"name": name, "mode": "degraded", "last_success_at": last_ok,
                 "detail": f"The last lookup failed ({contacts.health.last_error}). Calls use the on-file number and the hold says the independent check was unavailable."}
-    return {"name": "Vendor phone lookup (Apify)", "mode": "real", "last_success_at": last_ok,
+    return {"name": name, "mode": "real", "last_success_at": last_ok,
             "detail": "Built-in crawler (same code as the Actor) reads the vendor's own website" if s.contacts_provider == "local"
             else "Vendor Contact Verifier Actor reads the vendor's own website"}
 
