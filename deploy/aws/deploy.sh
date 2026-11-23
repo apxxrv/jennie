@@ -191,8 +191,18 @@ if [ "${FRESH:-0}" != "1" ]; then
   log "re-running the bootstrap on $INSTANCE (new code and settings)"
   CMD="$(aws ssm send-command --instance-ids "$INSTANCE" --document-name AWS-RunShellScript \
     --parameters 'commands=["/usr/local/sbin/countersign-bootstrap"],executionTimeout=["1800"]' --query Command.CommandId --output text)"
-  aws ssm wait command-executed --command-id "$CMD" --instance-id "$INSTANCE" || true
-  echo "bootstrap status: $(aws ssm get-command-invocation --command-id "$CMD" --instance-id "$INSTANCE" --query Status --output text)"
+  # The SSM waiter gives up after about 100 s; a bootstrap that reinstalls packages takes longer, so poll up to 30 minutes.
+  STATUS="Pending"
+  for _ in $(seq 1 180); do
+    sleep 10
+    STATUS="$(aws ssm get-command-invocation --command-id "$CMD" --instance-id "$INSTANCE" --query Status --output text 2>/dev/null || echo Pending)"
+    case "$STATUS" in Pending|InProgress|Delayed) ;; *) break ;; esac
+  done
+  echo "bootstrap status: $STATUS"
+  if [ "$STATUS" != "Success" ]; then
+    echo "the bootstrap did not succeed; see /var/log/countersign-bootstrap.log on $INSTANCE through SSM" >&2
+    exit 1
+  fi
 fi
 
 # ---------------------------------------------------------------- 10. wait until the site answers
