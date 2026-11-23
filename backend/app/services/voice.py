@@ -162,8 +162,18 @@ def audio_path(name: str) -> Optional[Path]:
     return path if path.is_file() else None
 
 
-def _clip_name(text: str) -> str:
-    return hashlib.sha256(text.encode("utf-8")).hexdigest() + ".wav"
+def _voice_tag(s: Settings) -> str:
+    """Which voice makes the clip, so switching TTS_PROVIDER or the voice never replays a clip from another voice. Mock = ''."""
+    if s.mock_cartesia:
+        return ""
+    if s.tts_provider == "polly":
+        return f"polly:{s.polly_voice_id}:{s.polly_engine}\n"
+    return f"cartesia:{s.cartesia_voice_id}\n"
+
+
+def _clip_name(text: str, settings: Optional[Settings] = None) -> str:
+    tag = _voice_tag(settings or get_settings())
+    return hashlib.sha256((tag + text).encode("utf-8")).hexdigest() + ".wav"
 
 
 def public_url(path: str, settings: Optional[Settings] = None) -> str:
@@ -179,7 +189,7 @@ def public_url(path: str, settings: Optional[Settings] = None) -> str:
 
 
 def clip_url(text: str, settings: Optional[Settings] = None) -> str:
-    return public_url(f"/api/voice/audio/{_clip_name(text)}", settings)
+    return public_url(f"/api/voice/audio/{_clip_name(text, settings)}", settings)
 
 
 def _write_silent_wav(path: Path, seconds: float = 0.5) -> None:
@@ -237,7 +247,7 @@ def _polly_wav(text: str, s: Settings) -> bytes:
 
 def _generate_clip(text: str, s: Settings) -> Path:
     AUDIO_DIR.mkdir(parents=True, exist_ok=True)
-    path = AUDIO_DIR / _clip_name(text)
+    path = AUDIO_DIR / _clip_name(text, s)
     if path.exists():
         return path
     tmp = path.with_suffix(".tmp")
@@ -254,14 +264,14 @@ async def ensure_clip(text: str, seconds: float, settings: Optional[Settings] = 
     """Voice a line during the call (a conversational reply), within `seconds`. True if the clip is ready to play. On a timeout or
     an error the caller falls back to a scripted line, whose clip was made before dialing."""
     s = settings or get_settings()
-    if audio_path(_clip_name(text)) is not None:
+    if audio_path(_clip_name(text, s)) is not None:
         return True
     try:
         await asyncio.wait_for(asyncio.to_thread(_generate_clip, text, s), seconds)
     except Exception:  # noqa: BLE001
         log.warning("in-call clip was late or failed; a scripted line is used instead")
         return False
-    return audio_path(_clip_name(text)) is not None
+    return audio_path(_clip_name(text, s)) is not None
 
 
 async def tts_clip(text: str, settings: Optional[Settings] = None) -> str:
@@ -394,7 +404,7 @@ def _esc(text: str) -> str:
 
 def _speak(text: str, settings: Optional[Settings] = None) -> str:
     """<Play> of the pre-generated clip, or <Say> if the clip file is missing (so a call is never silent). Never generates audio."""
-    if audio_path(_clip_name(text)) is not None:
+    if audio_path(_clip_name(text, settings)) is not None:
         return f"<Play>{_esc(clip_url(text, settings))}</Play>"
     return f"<Say>{_esc(text)}</Say>"
 

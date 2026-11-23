@@ -37,7 +37,9 @@ def call(env, monkeypatch, tmp_path):
         return "CAtest"
 
     async def fake_clip(text, settings=None):
-        voice._generate_clip(text, cfg.model_copy(update={"mock_cartesia": True}))  # a silent clip on disk, so the TwiML uses Play as a real call does
+        path = voice.AUDIO_DIR / voice._clip_name(text, cfg)  # the real voice's clip name, but a silent clip (no TTS call), so the TwiML uses Play as a real call does
+        path.parent.mkdir(parents=True, exist_ok=True)
+        voice._write_silent_wav(path)
         return voice.clip_url(text, settings)
 
     monkeypatch.setattr(voice, "place_call", fake_place)

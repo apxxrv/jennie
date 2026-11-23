@@ -21,6 +21,10 @@ os.environ["APP_ENV"] = "development"
 os.environ["MOCK_INJECTION"] = "false"
 os.environ["MOCK_RISK"] = "false"  # the real assessor; its Claude classifier stays off because MOCK_CLAUDE is true
 os.environ["ANTHROPIC_API_KEY"] = ""
+# The providers too: a .env that picks Bedrock, Polly or the local crawler must not change what the tests see.
+os.environ["CLAUDE_PROVIDER"] = "anthropic"
+os.environ["TTS_PROVIDER"] = "cartesia"
+os.environ["CONTACTS_PROVIDER"] = "apify"
 os.environ["APIFY_ACTOR_ID"] = "test-user/vendor-contact-verifier"
 # Same for every other value a real .env might hold: fixed fake values (fiction-range phone numbers), blank keys.
 os.environ["DEMO_VENDOR_PHONE"] = "+14155550142"

@@ -71,3 +71,16 @@ def test_polly_wav_is_16k_mono_16bit(monkeypatch):
     assert calls == [{"Text": "This is an automated call.", "OutputFormat": "pcm", "SampleRate": "16000", "VoiceId": "Matthew", "Engine": "neural"}]
     with wave.open(io.BytesIO(data)) as w:
         assert (w.getnchannels(), w.getsampwidth(), w.getframerate(), w.getnframes()) == (1, 2, 16000, 8000)
+
+
+def test_clip_name_depends_on_the_voice():
+    text = "This is an automated call."
+    names = {voice._clip_name(text, Settings(**kw)) for kw in (
+        {"mock_cartesia": True},
+        {"mock_cartesia": False, "tts_provider": "cartesia", "cartesia_voice_id": "v1"},
+        {"mock_cartesia": False, "tts_provider": "cartesia", "cartesia_voice_id": "v2"},
+        {"mock_cartesia": False, "tts_provider": "polly", "polly_voice_id": "Matthew", "polly_engine": "neural"},
+        {"mock_cartesia": False, "tts_provider": "polly", "polly_voice_id": "Matthew", "polly_engine": "standard"},
+    )}
+    assert len(names) == 5 and all(voice.AUDIO_NAME_RE.match(n) for n in names)
+    assert voice._clip_name(text, Settings(mock_cartesia=True)) == voice._clip_name(text, Settings(mock_cartesia=True, tts_provider="polly"))  # mock is one voice
