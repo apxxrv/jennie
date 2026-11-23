@@ -237,3 +237,33 @@ def test_an_answer_without_claims_is_asked_again_once(env, monkeypatch):
     monkeypatch.setattr(ask, "_ask_claude", fake)
     body = q(client, POISON, "explain the block to me please")
     assert len(calls) == 2 and body["source"] == "claude" and [c["evidence_id"] for c in body["claims"]] == [good]
+
+
+def test_claude_answering_with_no_claims_returns_the_template_claims(env, monkeypatch):
+    """Both tries cite nothing (or the deadline leaves no room for the retry): the template's cited answer is returned instead."""
+    client, eng = env
+    go(client)
+    calls = []
+
+    def fake(model, user, deadline):
+        calls.append(1)
+        return ask._Answer(answer="It was held for several reasons.", claims=[])
+
+    monkeypatch.setattr(ask, "get_settings", lambda: Settings(mock_claude=False, anthropic_api_key="k"))
+    monkeypatch.setattr(ask, "_ask_claude", fake)
+    body = q(client, CEO, "why was this held")
+    assert body["source"] == "template" and body["model"] is None and body["answer"] != ask.NO_ANSWER
+    check_claims(body)
+    with Session(eng) as s:
+        expected = ask.validate(ask.template_answer("why was this held", ask.gather(s, CEO)), ask.gather(s, CEO)["evidence"])
+    assert body["claims"] == expected[1]
+
+
+def test_claude_claims_that_cite_nothing_stored_also_fall_back_to_the_template(env, monkeypatch):
+    client, eng = env
+    go(client)
+    monkeypatch.setattr(ask, "get_settings", lambda: Settings(mock_claude=False, anthropic_api_key="k"))
+    monkeypatch.setattr(ask, "_ask_claude", lambda model, user, deadline: ask._Answer(answer="Held.", claims=[ask._Claim(text="made up", evidence_id="evd_fake")]))
+    body = q(client, CEO, "why was this held")
+    assert body["source"] == "template"
+    check_claims(body)

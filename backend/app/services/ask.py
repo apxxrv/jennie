@@ -459,6 +459,10 @@ async def answer(session: Session, payment_id: str, question: str) -> dict:
             raw = got if (raw is None or got.claims) else raw
             if got.claims:
                 break
+        if raw is not None and not validate(raw, evidence)[1]:
+            # No claim tied to stored evidence (often the retry had no time left): the template always cites the records.
+            log.warning("ask answer from Claude cited no stored evidence; using the template answer")
+            raw = None
         if raw is not None:
             source = "claude"
     if raw is None:
